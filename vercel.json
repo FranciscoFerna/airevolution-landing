@@ -2,7 +2,6 @@
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "framework": "astro",
-  "nodeVersion": "20.x",
   "env": {
     "N8N_WEBHOOK_URL": "@n8n-webhook-url",
     "PUBLIC_GA4_MEASUREMENT_ID": "@ga4-measurement-id",
