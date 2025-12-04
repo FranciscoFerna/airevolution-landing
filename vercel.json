@@ -3,7 +3,6 @@
   "installCommand": "npm install",
   "framework": "astro",
   "env": {
-    "N8N_WEBHOOK_URL": "@n8n-webhook-url",
     "PUBLIC_GA4_MEASUREMENT_ID": "@ga4-measurement-id",
     "RATE_LIMIT_MAX_REQUESTS": "20",
     "RATE_LIMIT_WINDOW_MS": "60000"
