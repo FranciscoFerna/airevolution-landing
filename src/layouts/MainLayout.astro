@@ -6,10 +6,6 @@ import "@fontsource/inter/600.css";
 import "@fontsource/inter/700.css";
 import "@fontsource/inter/800.css";
 
-const GA_MEASUREMENT_ID = import.meta.env.PUBLIC_GA4_MEASUREMENT_ID || "";
-const GTM_ID = import.meta.env.PUBLIC_GTM_ID || "";
-const RECAPTCHA_SITE_KEY = import.meta.env.PUBLIC_RECAPTCHA_SITE_KEY || "";
-
 interface Props {
   title?: string;
   description?: string;
@@ -25,6 +21,9 @@ const {
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site || "https://airevolution.es");
+
+const GA_MEASUREMENT_ID = "G-V04T8BP151"; // ✅ Directo para pruebas
+const RECAPTCHA_SITE_KEY = import.meta.env.PUBLIC_RECAPTCHA_SITE_KEY || "";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -70,6 +69,7 @@ const jsonLd = {
     <link rel="sitemap" href="/sitemap-index.xml" />
     {noIndex && <meta name="robots" content="noindex, nofollow" />}
 
+    <!-- Open Graph / Twitter -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:title" content={title} />
@@ -90,122 +90,29 @@ const jsonLd = {
 
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
-    <!-- ========================================
-         ✅ SOLUCIÓN 1: GA4 CON CONSENTIMIENTO CORRECTO
-         ======================================== -->
-    {GA_MEASUREMENT_ID && (
-      <>
-        <!-- 1. Inicializar dataLayer ANTES de cargar gtag.js -->
-        <script is:inline define:vars={{ GA_MEASUREMENT_ID }}>
-          window.dataLayer = window.dataLayer || [];
-          function gtag() {
-            window.dataLayer.push(arguments);
-          }
-          gtag('js', new Date());
-
-          // Consent mode v2: DENEGAR por defecto (respeta GDPR)
-          gtag('consent', 'default', {
-            'ad_storage': 'denied',
-            'analytics_storage': 'denied',
-            'personalization_storage': 'denied',
-            'ad_user_data': 'denied',
-            'ad_personalization': 'denied'
-          });
-
-          // Configurar GA4 (se ejecuta con consentimiento = denied inicialmente)
-          gtag('config', GA_MEASUREMENT_ID, {
-            'anonymize_ip': true,
-            'allow_google_signals': false,
-            'allow_ad_personalization_signals': false
-          });
-        </script>
-
-        <!-- 2. Cargar gtag.js script DESPUÉS de inicializar dataLayer -->
-        <script
-          async
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-        ></script>
-      </>
-    )}
-
-    <!-- ========================================
-         ✅ SOLUCIÓN 2: GTM (Google Tag Manager) - Opcional
-         ======================================== -->
-    {GTM_ID && (
-      <script is:inline define:vars={{ GTM_ID }}>
-        (function(w, d, s, l, i) {
-          w[l] = w[l] || [];
-          w[l].push({'gtm.start': new Date().getTime(), event: 'gtm.js'});
-          var f = d.getElementsByTagName(s)[0],
-              j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : '';
-          j.async = true;
-          j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-          f.parentNode.insertBefore(j, f);
-        })(window, document, 'script', 'dataLayer', GTM_ID);
-      </script>
-    )}
+    <!-- Google Analytics 4 -->
+    <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}></script>
+    <script is:inline>
+      {`
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '${GA_MEASUREMENT_ID}', { 'anonymize_ip': true });
+      `}
+    </script>
 
     <script is:inline>
-      window.__ENV__ = window.__ENV__ || {};
-      window.__ENV__.RECAPTCHA_SITE_KEY = import.meta.env.PUBLIC_RECAPTCHA_SITE_KEY || '';
+      window.__ENV__ = { RECAPTCHA_SITE_KEY: '${RECAPTCHA_SITE_KEY}' };
     </script>
 
     <slot name="head" />
   </head>
 
   <body class="bg-white text-gray-900 antialiased selection:bg-[#FC31E6] selection:text-white">
-    <!-- GTM noscript (para usuarios sin JS) -->
-    {GTM_ID && (
-      <noscript>
-        <iframe
-          src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
-          height="0"
-          width="0"
-          style="display:none;visibility:hidden"
-        />
-      </noscript>
-    )}
-
     <a href="#main-content" class="skip-link">Saltar al contenido</a>
-
-    <!-- Live region para anuncios a lectores de pantalla -->
-    <div
-      id="live-region"
-      role="status"
-      aria-live="polite"
-      aria-atomic="true"
-      class="sr-only"
-    />
 
     <main id="main-content">
       <slot />
     </main>
-
-    <!-- ========================================
-         ✅ SOLUCIÓN 3: Sincronizar CookieBanner con GA4
-         ======================================== -->
-    <script is:inline>
-      // Escuchar cambios de consentimiento de cookies
-      window.addEventListener('cookieConsentUpdate', function(e) {
-        const consent = e.detail;
-
-        console.log('🍪 Cookie consent update:', consent);
-
-        // Si gtag está disponible, actualizar consentimiento
-        if (typeof window.gtag === 'function') {
-          window.gtag('consent', 'update', {
-            'analytics_storage': consent.analytics ? 'granted' : 'denied',
-            'ad_storage': consent.marketing ? 'granted' : 'denied',
-            'personalization_storage': consent.preferences ? 'granted' : 'denied',
-            'ad_user_data': consent.marketing ? 'granted' : 'denied',
-            'ad_personalization': consent.marketing ? 'granted' : 'denied'
-          });
-
-          console.log('✅ GA4 consentimiento actualizado');
-        } else {
-          console.warn('⚠️ window.gtag no disponible aún');
-        }
-      });
-    </script>
   </body>
 </html>
