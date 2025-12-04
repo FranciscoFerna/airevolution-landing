@@ -1,0 +1,25 @@
+---
+import MainLayout from "../layouts/MainLayout.astro";
+import Header from "../components/Header";
+import Hero from "../components/Hero";
+import Features from "../components/Features";
+import HowItWorks from "../components/HowItWorks";
+import Testimonials from "../components/Testimonials";
+import CTA from "../components/CTA";
+import Footer from "../components/Footer";
+import CookieBanner from "../components/CookieBanner";
+
+// Obtener la site key de reCAPTCHA para pasarla a los componentes
+const recaptchaSiteKey = import.meta.env.PUBLIC_RECAPTCHA_SITE_KEY || "";
+---
+
+<MainLayout>
+  <Header client:load />
+  <Hero client:load />
+  <Features client:load />
+  <HowItWorks client:load />
+  <Testimonials client:load />
+  <CTA client:load recaptchaSiteKey={recaptchaSiteKey} />
+  <Footer client:load />
+  <CookieBanner client:load />
+</MainLayout>

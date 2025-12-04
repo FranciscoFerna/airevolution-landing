@@ -1,0 +1,206 @@
+---
+export const prerender = true;
+
+import MainLayout from "../layouts/MainLayout.astro";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
+import CookieBanner from "../components/CookieBanner";
+---
+
+<MainLayout
+  title="Términos de Servicio - AI Revolution"
+  description="Términos y condiciones de uso de los servicios de AI Revolution."
+>
+  <Header client:load />
+
+  <article
+    class="pt-32 pb-20 px-6 max-w-4xl mx-auto prose prose-lg prose-slate"
+  >
+    <h1 class="text-3xl md:text-4xl font-bold text-[#0B0D73] mb-8">
+      Términos de Servicio
+    </h1>
+
+    <p class="text-gray-500 text-sm mb-8">
+      Última actualización: {
+        new Date().toLocaleDateString("es-ES", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+      }
+    </p>
+
+    <section class="mb-8">
+      <h2 class="text-xl font-bold text-[#0B0D73] mb-4">1. Identificación</h2>
+      <div class="bg-gray-50 p-6 rounded-lg border border-gray-100">
+        <ul class="space-y-2 list-none p-0 m-0">
+          <li><strong>Titular:</strong> Francisco Fernández Navarro</li>
+
+          <li><strong>Nombre Comercial:</strong> AI Revolution</li>
+
+          <li><strong>NIF/DNI:</strong> 55157909E</li>
+
+          <li>
+            <strong>Domicilio:</strong> Carrer Casals 08031 Barcelona, España
+          </li>
+
+          <li><strong>Email:</strong> airevolutionofficial1@gmail.com</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-xl font-bold text-[#0B0D73] mb-4">2. Objeto</h2>
+      <p>
+        Estos términos regulan el uso del sitio web <code>(por especificar)</code>
+        y la contratación de los servicios de automatización de procesos, marketing
+        digital, desarrollo web y consultoría estratégica ofrecidos por AI Revolution.
+      </p>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-xl font-bold text-[#0B0D73] mb-4">
+        3. Uso del sitio web
+      </h2>
+      <p>El usuario se compromete a:</p>
+      <ul class="list-disc pl-6 space-y-2">
+        <li>
+          Hacer un uso adecuado, lícito y conforme a la buena fe del sitio web.
+        </li>
+        <li>
+          No utilizar el sitio para fines fraudulentos o para captar datos de
+          forma masiva (scraping) sin autorización.
+        </li>
+        <li>
+          No introducir virus, código malicioso o intentar acceder a áreas
+          restringidas de nuestros sistemas.
+        </li>
+        <li>
+          Proporcionar información veraz y lícita en los formularios de contacto
+          y auditoría.
+        </li>
+      </ul>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-xl font-bold text-[#0B0D73] mb-4">
+        4. Condiciones de los Servicios
+      </h2>
+
+      <h3 class="text-lg font-semibold text-[#334155] mt-4 mb-2">
+        4.1 Auditoría Gratuita
+      </h3>
+      <p>
+        AI Revolution ofrece una sesión de análisis inicial sin coste
+        ("Auditoría Gratuita") sujeta a disponibilidad. Esta sesión tiene
+        carácter informativo y <strong
+          >no genera obligación de contratación</strong
+        > posterior. Nos reservamos el derecho de cancelar o reprogramar sesiones
+        si se detecta que el perfil no se adecúa a nuestros servicios.
+      </p>
+
+      <h3 class="text-lg font-semibold text-[#334155] mt-4 mb-2">
+        4.2 Proyectos y Contratación
+      </h3>
+      <p>
+        Cualquier servicio de pago (implementación de automatizaciones,
+        desarrollo web, campañas) requerirá la firma de una
+        <strong>Propuesta Comercial o Contrato de Servicios</strong> independiente.
+        En dicho documento se detallarán:
+      </p>
+      <ul class="list-disc pl-6 space-y-1 text-sm">
+        <li>Alcance del trabajo (SOW).</li>
+        <li>Plazos de entrega y cronograma.</li>
+        <li>Precio y forma de pago.</li>
+        <li>Garantías específicas del proyecto.</li>
+      </ul>
+      <p class="mt-2 text-sm">
+        * Los precios mostrados en la web ("Desde X €") son orientativos y
+        pueden variar según la complejidad del proyecto.
+      </p>
+
+      <h3 class="text-lg font-semibold text-[#334155] mt-4 mb-2">
+        4.3 Herramientas de Terceros
+      </h3>
+      <p>
+        Nuestros servicios pueden implicar el uso o integración de herramientas
+        de terceros (n8n, OpenAI, Google Cloud, Meta Ads, etc.). El Cliente es
+        responsable de cumplir con los términos de uso de dichas plataformas y
+        de asumir los costes de licencias si no se especifica lo contrario en la
+        propuesta.
+      </p>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-xl font-bold text-[#0B0D73] mb-4">
+        5. Propiedad Intelectual
+      </h2>
+      <p>
+        <strong>Sitio Web:</strong> Todos los contenidos (textos, diseños, código
+        fuente, logotipos) son propiedad exclusiva de AI Revolution o de terceros
+        que han autorizado su uso. Queda prohibida su reproducción total o parcial
+        sin consentimiento expreso.
+      </p>
+      <p>
+        <strong>Entregables al Cliente:</strong> Salvo pacto en contrario en el Contrato
+        de Servicios, los derechos de explotación sobre los entregables finales desarrollados
+        a medida para el Cliente serán cedidos a este una vez abonado el precio total
+        acordado. AI Revolution se reserva el derecho a reutilizar fragmentos de
+        código genérico, conocimientos técnicos (know-how) y metodologías para otros
+        proyectos.
+      </p>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-xl font-bold text-[#0B0D73] mb-4">
+        6. Limitación de Responsabilidad
+      </h2>
+      <p>AI Revolution no será responsable de:</p>
+      <ul class="list-disc pl-6 space-y-2">
+        <li>
+          Interrupciones del servicio web por causas de fuerza mayor o
+          mantenimiento técnico.
+        </li>
+        <li>
+          Daños derivados del uso incorrecto de las automatizaciones por parte
+          del Cliente o su personal.
+        </li>
+        <li>
+          Cambios en las políticas o algoritmos de plataformas de terceros
+          (Google, Facebook, etc.) que afecten al rendimiento de las campañas o
+          integraciones.
+        </li>
+        <li>
+          Lucro cesante o daños indirectos, limitándose nuestra responsabilidad
+          al importe abonado por el Cliente por el servicio específico.
+        </li>
+      </ul>
+    </section>
+
+    <section class="mb-8">
+      <h2 class="text-xl font-bold text-[#0B0D73] mb-4">7. Modificaciones</h2>
+      <p>
+        Nos reservamos el derecho de modificar estos términos en cualquier
+        momento para adaptarlos a cambios legislativos o de nuestra actividad.
+        Las modificaciones serán efectivas desde su publicación en este sitio
+        web. Se recomienda revisar esta página periódicamente.
+      </p>
+    </section>
+
+    <section>
+      <h2 class="text-xl font-bold text-[#0B0D73] mb-4">
+        8. Legislación aplicable y Jurisdicción
+      </h2>
+      <p>
+        La relación entre AI Revolution y el Usuario se regirá por la normativa
+        española vigente. Para la resolución de cualquier controversia, las
+        partes se someten a los Juzgados y Tribunales de la ciudad de
+        <strong>Barcelona</strong>, renunciando a cualquier otro fuero
+        que pudiera corresponderles.
+      </p>
+    </section>
+  </article>
+
+  <Footer client:load />
+  <CookieBanner client:load />
+</MainLayout>

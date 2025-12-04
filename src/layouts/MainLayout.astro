@@ -1,0 +1,170 @@
+---
+import "../styles/global.css";
+// Optimización de fuentes: Carga local para evitar bloqueos de renderizado
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/inter/700.css";
+import "@fontsource/inter/800.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+  noIndex?: boolean;
+}
+
+// VALORES ACTUALIZADOS SEGÚN AUDITORÍA (Bloque A3)
+const {
+  title = "Automatización Inteligente | Ahorrar 260h/año | AI Revolution",
+  description = "Automatiza procesos repetitivos con IA. Auditoría gratuita. 50+ empresas confían en nosotros. Ahorra 260h/año confirmadas.",
+  ogImage = "/og-image.jpg",
+  noIndex = false,
+} = Astro.props;
+
+// Canonical URL robusta
+const canonicalURL = new URL(Astro.url.pathname, Astro.site || "https://airevolution.es");
+
+// Variables de entorno
+const GA4_ID = import.meta.env.PUBLIC_GA4_MEASUREMENT_ID || "";
+const GTM_ID = import.meta.env.PUBLIC_GTM_ID || "";
+const RECAPTCHA_SITE_KEY = import.meta.env.PUBLIC_RECAPTCHA_SITE_KEY || "";
+
+// SCHEMA JSON-LD (Bloque A4)
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "AI Revolution",
+  "alternateName": "AI Revolution S.L.",
+  "description": "Automatización e Inteligencia Artificial para Empresas",
+  "url": "https://airevolution.es",
+  "image": "https://airevolution.es/logo.png",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Calle Ejemplo 123",
+    "addressLocality": "Madrid",
+    "postalCode": "28001",
+    "addressCountry": "ES"
+  },
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "sales",
+    "telephone": "+34-XXX-XXX-XXX",
+    "email": "hola@airevolution.es"
+  },
+  "areaServed": "ES",
+  "priceRange": "$$",
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.8",
+    "ratingCount": "50"
+  }
+};
+---
+
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    {noIndex && <meta name="robots" content="noindex, nofollow" />}
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={new URL(ogImage, canonicalURL)} />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:site_name" content="AI Revolution" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={canonicalURL} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={new URL(ogImage, canonicalURL)} />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#0B0D73" />
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+    {GTM_ID && (
+      <script is:inline define:vars={{ GTM_ID }}>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('consent', 'default', {
+          'ad_storage': 'denied',
+          'ad_user_data': 'denied',
+          'ad_personalization': 'denied',
+          'analytics_storage': 'denied',
+          'security_storage': 'granted',
+          'wait_for_update': 500
+        });
+        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer',GTM_ID);
+      </script>
+    )}
+
+    {GA4_ID && !GTM_ID && (
+      <>
+        <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA4_ID}`}></script>
+        <script is:inline define:vars={{ GA4_ID }}>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('consent', 'default', {
+            'ad_storage': 'denied',
+            'analytics_storage': 'denied'
+          });
+          gtag('js', new Date());
+          gtag('config', GA4_ID, { 'anonymize_ip': true });
+        </script>
+      </>
+    )}
+
+    <script is:inline define:vars={{ RECAPTCHA_SITE_KEY }}>
+      window.__ENV__ = { RECAPTCHA_SITE_KEY };
+    </script>
+  </head>
+
+  <body class="bg-white text-gray-900 antialiased selection:bg-[#FC31E6] selection:text-white">
+    <a href="#main-content" class="skip-link">Saltar al contenido</a>
+
+    {GTM_ID && (
+      <noscript>
+        <iframe src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+        height="0" width="0" style="display:none;visibility:hidden"></iframe>
+      </noscript>
+    )}
+
+    <div id="live-region" role="status" aria-live="polite" class="sr-only"></div>
+
+    <main id="main-content">
+      <slot />
+    </main>
+
+    <script is:inline>
+      window.addEventListener('cookieConsentUpdate', function(e) {
+        const consent = e.detail;
+        if (consent.marketing && window.fbq) window.fbq('consent', 'grant');
+        if (typeof window.gtag === 'function') {
+          window.gtag('consent', 'update', {
+            'analytics_storage': consent.analytics ? 'granted' : 'denied',
+            'ad_storage': consent.marketing ? 'granted' : 'denied',
+            'ad_user_data': consent.marketing ? 'granted' : 'denied',
+            'ad_personalization': consent.marketing ? 'granted' : 'denied'
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
