@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+// Optimización de fuentes
 import "@fontsource/inter/400.css";
 import "@fontsource/inter/500.css";
 import "@fontsource/inter/600.css";
@@ -22,9 +23,13 @@ const {
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site || "https://airevolution.es");
 
-const GA_MEASUREMENT_ID = "G-V04T8BP151"; // ✅ Directo para pruebas
+// ✅ TU ID DE GOOGLE ANALYTICS
+const GA_MEASUREMENT_ID = "G-V04T8BP151";
+
+// Variables de entorno opcionales (reCAPTCHA sigue siendo necesario por env)
 const RECAPTCHA_SITE_KEY = import.meta.env.PUBLIC_RECAPTCHA_SITE_KEY || "";
 
+// SCHEMA JSON-LD
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
@@ -35,16 +40,16 @@ const jsonLd = {
   "image": "https://airevolution.es/logo.png",
   "address": {
     "@type": "PostalAddress",
-    "streetAddress": "Calle Ejemplo 123",
-    "addressLocality": "Madrid",
-    "postalCode": "28001",
+    "streetAddress": "Carrer Casals",
+    "addressLocality": "Barcelona",
+    "postalCode": "08031",
     "addressCountry": "ES"
   },
   "contactPoint": {
     "@type": "ContactPoint",
     "contactType": "sales",
     "telephone": "+34-XXX-XXX-XXX",
-    "email": "hola@airevolution.es"
+    "email": "airevolutionofficial1@gmail.com"
   },
   "areaServed": "ES",
   "priceRange": "$$",
@@ -69,7 +74,6 @@ const jsonLd = {
     <link rel="sitemap" href="/sitemap-index.xml" />
     {noIndex && <meta name="robots" content="noindex, nofollow" />}
 
-    <!-- Open Graph / Twitter -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:title" content={title} />
@@ -90,29 +94,50 @@ const jsonLd = {
 
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
-    <!-- Google Analytics 4 -->
     <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}></script>
-    <script is:inline>
-      {`
+    <script is:inline define:vars={{ GA_MEASUREMENT_ID }}>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', '${GA_MEASUREMENT_ID}', { 'anonymize_ip': true });
-      `}
+
+      // Configuración inicial (Denegado por defecto para cumplir GDPR hasta que acepten cookies)
+      gtag('consent', 'default', {
+        'ad_storage': 'denied',
+        'ad_user_data': 'denied',
+        'ad_personalization': 'denied',
+        'analytics_storage': 'denied'
+      });
+
+      gtag('config', GA_MEASUREMENT_ID, { 'anonymize_ip': true });
     </script>
 
-    <script is:inline>
-      window.__ENV__ = { RECAPTCHA_SITE_KEY: '${RECAPTCHA_SITE_KEY}' };
+    <script is:inline define:vars={{ RECAPTCHA_SITE_KEY }}>
+      window.__ENV__ = { RECAPTCHA_SITE_KEY };
     </script>
-
-    <slot name="head" />
   </head>
 
   <body class="bg-white text-gray-900 antialiased selection:bg-[#FC31E6] selection:text-white">
     <a href="#main-content" class="skip-link">Saltar al contenido</a>
 
+    <div id="live-region" role="status" aria-live="polite" class="sr-only"></div>
+
     <main id="main-content">
       <slot />
     </main>
+
+    <script is:inline>
+      window.addEventListener('cookieConsentUpdate', function(e) {
+        const consent = e.detail;
+        if (typeof window.gtag === 'function') {
+          window.gtag('consent', 'update', {
+            'analytics_storage': consent.analytics ? 'granted' : 'denied',
+            'ad_storage': consent.marketing ? 'granted' : 'denied',
+            'ad_user_data': consent.marketing ? 'granted' : 'denied',
+            'ad_personalization': consent.marketing ? 'granted' : 'denied'
+          });
+          console.log('GA4 Consent Updated:', consent);
+        }
+      });
+    </script>
   </body>
 </html>
