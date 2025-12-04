@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Mapa del sitio generado automáticamente
+Sitemap: https://airevolution.es/sitemap-index.xml

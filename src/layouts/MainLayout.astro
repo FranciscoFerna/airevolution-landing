@@ -6,6 +6,7 @@ import "@fontsource/inter/500.css";
 import "@fontsource/inter/600.css";
 import "@fontsource/inter/700.css";
 import "@fontsource/inter/800.css";
+import Analytics from "@vercel/analytics/astro";
 
 interface Props {
   title?: string;
@@ -114,6 +115,8 @@ const jsonLd = {
     <script is:inline define:vars={{ RECAPTCHA_SITE_KEY }}>
       window.__ENV__ = { RECAPTCHA_SITE_KEY };
     </script>
+
+    <Analytics />
   </head>
 
   <body class="bg-white text-gray-900 antialiased selection:bg-[#FC31E6] selection:text-white">
