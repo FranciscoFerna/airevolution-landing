@@ -3,7 +3,7 @@
   "installCommand": "npm install",
   "framework": "astro",
   "env": {
-    "PUBLIC_GA4_MEASUREMENT_ID": "",
+    "PUBLIC_GA4_MEASUREMENT_ID": "G-VVSPK87D4X",
     "RATE_LIMIT_MAX_REQUESTS": "20",
     "RATE_LIMIT_WINDOW_MS": "60000"
   },

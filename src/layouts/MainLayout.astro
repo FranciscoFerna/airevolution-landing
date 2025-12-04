@@ -1,11 +1,14 @@
 ---
 import "../styles/global.css";
-// Optimización de fuentes: Carga local para evitar bloqueos de renderizado
 import "@fontsource/inter/400.css";
 import "@fontsource/inter/500.css";
 import "@fontsource/inter/600.css";
 import "@fontsource/inter/700.css";
 import "@fontsource/inter/800.css";
+
+const GA_MEASUREMENT_ID = import.meta.env.PUBLIC_GA4_MEASUREMENT_ID || "";
+const GTM_ID = import.meta.env.PUBLIC_GTM_ID || "";
+const RECAPTCHA_SITE_KEY = import.meta.env.PUBLIC_RECAPTCHA_SITE_KEY || "";
 
 interface Props {
   title?: string;
@@ -14,7 +17,6 @@ interface Props {
   noIndex?: boolean;
 }
 
-// VALORES ACTUALIZADOS SEGÚN AUDITORÍA (Bloque A3)
 const {
   title = "Automatización Inteligente | Ahorrar 260h/año | AI Revolution",
   description = "Automatiza procesos repetitivos con IA. Auditoría gratuita. 50+ empresas confían en nosotros. Ahorra 260h/año confirmadas.",
@@ -22,15 +24,8 @@ const {
   noIndex = false,
 } = Astro.props;
 
-// Canonical URL robusta
 const canonicalURL = new URL(Astro.url.pathname, Astro.site || "https://airevolution.es");
 
-// Variables de entorno
-const GA4_ID = import.meta.env.PUBLIC_GA4_MEASUREMENT_ID || "";
-const GTM_ID = import.meta.env.PUBLIC_GTM_ID || "";
-const RECAPTCHA_SITE_KEY = import.meta.env.PUBLIC_RECAPTCHA_SITE_KEY || "";
-
-// SCHEMA JSON-LD (Bloque A4)
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
@@ -95,56 +90,31 @@ const jsonLd = {
 
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
-    {GTM_ID && (
-      <script is:inline define:vars={{ GTM_ID }}>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('consent', 'default', {
-          'ad_storage': 'denied',
-          'ad_user_data': 'denied',
-          'ad_personalization': 'denied',
-          'analytics_storage': 'denied',
-          'security_storage': 'granted',
-          'wait_for_update': 500
-        });
-        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-        })(window,document,'script','dataLayer',GTM_ID);
-      </script>
-    )}
-
-    {GA4_ID && !GTM_ID && (
+    {GA_MEASUREMENT_ID && (
       <>
-        <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA4_ID}`}></script>
-        <script is:inline define:vars={{ GA4_ID }}>
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('consent', 'default', {
-            'ad_storage': 'denied',
-            'analytics_storage': 'denied'
-          });
-          gtag('js', new Date());
-          gtag('config', GA4_ID, { 'anonymize_ip': true });
+        <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}></script>
+        <script is:inline>
+          {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent', 'default', {
+  'ad_storage': 'denied',
+  'analytics_storage': 'denied'
+});
+gtag('js', new Date());
+gtag('config', '${GA_MEASUREMENT_ID}', { 'anonymize_ip': true });`}
         </script>
       </>
     )}
 
-    <script is:inline define:vars={{ RECAPTCHA_SITE_KEY }}>
+    <script is:inline>
       window.__ENV__ = { RECAPTCHA_SITE_KEY };
     </script>
+
+    <slot name="head" />
   </head>
 
   <body class="bg-white text-gray-900 antialiased selection:bg-[#FC31E6] selection:text-white">
     <a href="#main-content" class="skip-link">Saltar al contenido</a>
-
-    {GTM_ID && (
-      <noscript>
-        <iframe src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
-        height="0" width="0" style="display:none;visibility:hidden"></iframe>
-      </noscript>
-    )}
 
     <div id="live-region" role="status" aria-live="polite" class="sr-only"></div>
 
@@ -155,13 +125,10 @@ const jsonLd = {
     <script is:inline>
       window.addEventListener('cookieConsentUpdate', function(e) {
         const consent = e.detail;
-        if (consent.marketing && window.fbq) window.fbq('consent', 'grant');
         if (typeof window.gtag === 'function') {
           window.gtag('consent', 'update', {
             'analytics_storage': consent.analytics ? 'granted' : 'denied',
-            'ad_storage': consent.marketing ? 'granted' : 'denied',
-            'ad_user_data': consent.marketing ? 'granted' : 'denied',
-            'ad_personalization': consent.marketing ? 'granted' : 'denied'
+            'ad_storage': consent.marketing ? 'granted' : 'denied'
           });
         }
       });
