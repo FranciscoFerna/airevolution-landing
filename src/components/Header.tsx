@@ -63,7 +63,7 @@ export default function Header() {
           {/* Logo */}
           <a href="/" className="flex items-center gap-3" aria-label="AI Revolution - Ir al inicio">
             <div className="relative">
-              <img src="../../public/logo.png" alt="" className="w-10" />
+              <img src="/public/logo.png" alt="" className="w-10" />
             </div>
             <div>
               <span className="text-xl font-bold text-[#0B0D73]">AI Revolution</span>
