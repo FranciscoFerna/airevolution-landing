@@ -1,31 +1,31 @@
+// Custom hooks for the lead form - VERSIÓN CORREGIDA CON GA4 FUNCIONAL
+
 import { useState, useEffect, useCallback } from "react";
 
 // =========================================
 // Utility: Esperar a que GA4 esté listo
 // =========================================
-function waitForGtag(timeout = 2000): Promise<any> {
+function waitForGtag(timeout = 5000): Promise<typeof window.gtag> {
   return new Promise((resolve) => {
-    if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
-      resolve(window.gtag);
-      return;
-    }
-
     let elapsed = 0;
-    const interval = 100;
+    const interval = 50;
 
     const check = () => {
-      if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+      if (typeof window.gtag === "function") {
         resolve(window.gtag);
         return;
       }
+
       elapsed += interval;
       if (elapsed >= timeout) {
-        // Si no carga, resolvemos con una función vacía para no romper la app
-        resolve(() => {});
+        console.warn("⏱️ GA4 timeout - gtag no cargó en", timeout, "ms");
+        resolve(undefined as any);
         return;
       }
+
       setTimeout(check, interval);
     };
+
     check();
   });
 }
@@ -69,12 +69,26 @@ export function useUTMParams(): UTMParams {
       referrer: document.referrer || "",
     });
 
+    // Guardar UTMs en sessionStorage para persistencia durante la sesión
     const utmData = {
-      utm_source: urlParams.get("utm_source") || sessionStorage.getItem("utm_source") || "",
-      utm_medium: urlParams.get("utm_medium") || sessionStorage.getItem("utm_medium") || "",
-      utm_campaign: urlParams.get("utm_campaign") || sessionStorage.getItem("utm_campaign") || "",
-      utm_term: urlParams.get("utm_term") || sessionStorage.getItem("utm_term") || "",
-      utm_content: urlParams.get("utm_content") || sessionStorage.getItem("utm_content") || "",
+      utm_source:
+        urlParams.get("utm_source") ||
+        sessionStorage.getItem("utm_source") ||
+        "",
+      utm_medium:
+        urlParams.get("utm_medium") ||
+        sessionStorage.getItem("utm_medium") ||
+        "",
+      utm_campaign:
+        urlParams.get("utm_campaign") ||
+        sessionStorage.getItem("utm_campaign") ||
+        "",
+      utm_term:
+        urlParams.get("utm_term") || sessionStorage.getItem("utm_term") || "",
+      utm_content:
+        urlParams.get("utm_content") ||
+        sessionStorage.getItem("utm_content") ||
+        "",
     };
 
     Object.entries(utmData).forEach(([key, value]) => {
@@ -88,7 +102,7 @@ export function useUTMParams(): UTMParams {
 }
 
 // =========================================
-// Analytics Event Hook (GA4 + GTM)
+// Analytics Event Hook - VERSIÓN CORREGIDA
 // =========================================
 interface AnalyticsEvent {
   event: string;
@@ -104,8 +118,11 @@ export function useAnalytics() {
     if (typeof window === "undefined") return;
 
     try {
-      const gtag = await waitForGtag();
-      if (gtag) {
+      // Esperar a que GA4 esté listo (máximo 2 segundos)
+      const gtag = await waitForGtag(2000);
+
+      if (typeof gtag === "function") {
+        // ✅ Enviar a Google Analytics 4
         gtag("event", eventData.event, {
           event_category: eventData.category,
           event_label: eventData.label,
@@ -113,12 +130,26 @@ export function useAnalytics() {
           ...eventData,
         });
 
-        if (process.env.NODE_ENV === 'development') {
-            console.log('📊 GA4 Event Sent:', eventData);
+        if (process.env.NODE_ENV === "development") {
+          console.log("📊 [GA4]", eventData);
         }
+      } else {
+        console.warn("⚠️ GA4 (gtag) no disponible");
       }
-    } catch (e) {
-      console.warn("Analytics error:", e);
+    } catch (error) {
+      console.error("❌ Error en GA4:", error);
+    }
+
+    // Google Tag Manager dataLayer (fallback)
+    try {
+      if (window.dataLayer && Array.isArray(window.dataLayer)) {
+        window.dataLayer.push({
+          ...eventData,
+          event: eventData.event,
+        });
+      }
+    } catch (error) {
+      console.warn("⚠️ GTM dataLayer no disponible");
     }
   }, []);
 
@@ -151,6 +182,29 @@ export function useAnalytics() {
         label: service,
         lead_id: leadId,
       });
+
+      // Conversion event para Google Ads
+      waitForGtag(1000).then((gtag) => {
+        if (typeof gtag === "function") {
+          gtag("event", "conversion", {
+            send_to: "AW-CONVERSION_ID/CONVERSION_LABEL", // Reemplazar con IDs reales
+            value: 1.0,
+            currency: "EUR",
+          });
+        }
+      });
+
+      // Meta/Facebook Pixel
+      if (typeof window.fbq === "function") {
+        try {
+          window.fbq("track", "Lead", {
+            content_name: service,
+            lead_id: leadId,
+          });
+        } catch (error) {
+          console.warn("⚠️ Facebook Pixel error:", error);
+        }
+      }
     },
     [trackEvent]
   );
@@ -177,13 +231,16 @@ export function useAnalytics() {
 }
 
 // =========================================
-// reCAPTCHA & Otros Hooks (Sin cambios)
+// reCAPTCHA Hook
 // =========================================
 declare global {
   interface Window {
     grecaptcha: {
       ready: (callback: () => void) => void;
-      execute: (siteKey: string, options: { action: string }) => Promise<string>;
+      execute: (
+        siteKey: string,
+        options: { action: string }
+      ) => Promise<string>;
     };
     gtag: (...args: unknown[]) => void;
     dataLayer: unknown[];
@@ -196,27 +253,42 @@ export function useRecaptcha(siteKey: string | null) {
 
   useEffect(() => {
     if (!siteKey || typeof window === "undefined") return;
+
+    // Verificar si ya está cargado
     if (window.grecaptcha) {
       setIsLoaded(true);
       return;
     }
+
+    // Cargar script de reCAPTCHA
     const script = document.createElement("script");
     script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}`;
     script.async = true;
     script.defer = true;
+
     script.onload = () => {
       window.grecaptcha.ready(() => {
         setIsLoaded(true);
       });
     };
+
     document.head.appendChild(script);
+
+    return () => {
+      // Cleanup si es necesario
+    };
   }, [siteKey]);
 
   const executeRecaptcha = useCallback(
     async (action: string): Promise<string | null> => {
-      if (!siteKey || !isLoaded || !window.grecaptcha) return null;
+      if (!siteKey || !isLoaded || !window.grecaptcha) {
+        console.warn("reCAPTCHA not available");
+        return null;
+      }
+
       try {
-        return await window.grecaptcha.execute(siteKey, { action });
+        const token = await window.grecaptcha.execute(siteKey, { action });
+        return token;
       } catch (error) {
         console.error("reCAPTCHA execution error:", error);
         return null;
@@ -228,23 +300,78 @@ export function useRecaptcha(siteKey: string | null) {
   return { isLoaded, executeRecaptcha };
 }
 
+// =========================================
+// Focus Trap Hook (for modals)
+// =========================================
+export function useFocusTrap(isActive: boolean) {
+  const [containerRef, setContainerRef] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!isActive || !containerRef) return;
+
+    const focusableElements = containerRef.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    // Focus first element
+    firstElement?.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          e.preventDefault();
+          lastElement?.focus();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          e.preventDefault();
+          firstElement?.focus();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isActive, containerRef]);
+
+  return setContainerRef;
+}
+
+// =========================================
+// Announce to Screen Readers Hook
+// =========================================
 export function useAnnounce() {
   const announce = useCallback(
     (message: string, priority: "polite" | "assertive" = "polite") => {
       if (typeof document === "undefined") return;
-      const announcer = document.getElementById("live-region") || createAnnouncer();
+
+      const announcer =
+        document.getElementById("live-region") || createAnnouncer();
       announcer.setAttribute("aria-live", priority);
       announcer.textContent = message;
-      setTimeout(() => { announcer.textContent = ""; }, 1000);
+
+      // Limpiar después de que se lea
+      setTimeout(() => {
+        announcer.textContent = "";
+      }, 1000);
     },
     []
   );
+
   return announce;
 }
 
 function createAnnouncer(): HTMLElement {
   const announcer = document.createElement("div");
   announcer.id = "live-region";
+  announcer.setAttribute("role", "status");
+  announcer.setAttribute("aria-live", "polite");
+  announcer.setAttribute("aria-atomic", "true");
   announcer.className = "sr-only";
   document.body.appendChild(announcer);
   return announcer;
