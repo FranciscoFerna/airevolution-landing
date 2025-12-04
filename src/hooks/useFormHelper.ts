@@ -1,6 +1,34 @@
-// Custom hooks for the lead form
+// Custom hooks for the lead form - VERSIÓN CORREGIDA CON GA4 FUNCIONAL
 
 import { useState, useEffect, useCallback } from "react";
+
+// =========================================
+// Utility: Esperar a que GA4 esté listo
+// =========================================
+function waitForGtag(timeout = 5000): Promise<typeof window.gtag> {
+  return new Promise((resolve) => {
+    let elapsed = 0;
+    const interval = 50;
+
+    const check = () => {
+      if (typeof window.gtag === "function") {
+        resolve(window.gtag);
+        return;
+      }
+
+      elapsed += interval;
+      if (elapsed >= timeout) {
+        console.warn("⏱️ GA4 timeout - gtag no cargó en", timeout, "ms");
+        resolve(undefined as any);
+        return;
+      }
+
+      setTimeout(check, interval);
+    };
+
+    check();
+  });
+}
 
 // =========================================
 // UTM Parameters Hook
@@ -74,7 +102,7 @@ export function useUTMParams(): UTMParams {
 }
 
 // =========================================
-// Analytics Event Hook
+// Analytics Event Hook - VERSIÓN CORREGIDA
 // =========================================
 interface AnalyticsEvent {
   event: string;
@@ -86,29 +114,42 @@ interface AnalyticsEvent {
 }
 
 export function useAnalytics() {
-  const trackEvent = useCallback((eventData: AnalyticsEvent) => {
+  const trackEvent = useCallback(async (eventData: AnalyticsEvent) => {
     if (typeof window === "undefined") return;
 
-    // Google Analytics 4 (gtag)
-    if (typeof window.gtag === "function") {
-      window.gtag("event", eventData.event, {
-        event_category: eventData.category,
-        event_label: eventData.label,
-        value: eventData.value,
-        ...eventData,
-      });
+    try {
+      // Esperar a que GA4 esté listo (máximo 2 segundos)
+      const gtag = await waitForGtag(2000);
+
+      if (typeof gtag === "function") {
+        // ✅ Enviar a Google Analytics 4
+        gtag("event", eventData.event, {
+          event_category: eventData.category,
+          event_label: eventData.label,
+          value: eventData.value,
+          ...eventData,
+        });
+
+        if (process.env.NODE_ENV === "development") {
+          console.log("📊 [GA4]", eventData);
+        }
+      } else {
+        console.warn("⚠️ GA4 (gtag) no disponible");
+      }
+    } catch (error) {
+      console.error("❌ Error en GA4:", error);
     }
 
-    // Google Tag Manager dataLayer
-    if (window.dataLayer) {
-      window.dataLayer.push({
-        ...eventData,
-      });
-    }
-
-    // Console log en desarrollo
-    if (process.env.NODE_ENV === "development") {
-      console.log("Analytics Event:", eventData);
+    // Google Tag Manager dataLayer (fallback)
+    try {
+      if (window.dataLayer && Array.isArray(window.dataLayer)) {
+        window.dataLayer.push({
+          ...eventData,
+          event: eventData.event,
+        });
+      }
+    } catch (error) {
+      console.warn("⚠️ GTM dataLayer no disponible");
     }
   }, []);
 
@@ -143,20 +184,26 @@ export function useAnalytics() {
       });
 
       // Conversion event para Google Ads
-      if (typeof window.gtag === "function") {
-        window.gtag("event", "conversion", {
-          send_to: "AW-CONVERSION_ID/CONVERSION_LABEL", // Reemplazar con IDs reales
-          value: 1.0,
-          currency: "EUR",
-        });
-      }
+      waitForGtag(1000).then((gtag) => {
+        if (typeof gtag === "function") {
+          gtag("event", "conversion", {
+            send_to: "AW-CONVERSION_ID/CONVERSION_LABEL", // Reemplazar con IDs reales
+            value: 1.0,
+            currency: "EUR",
+          });
+        }
+      });
 
       // Meta/Facebook Pixel
       if (typeof window.fbq === "function") {
-        window.fbq("track", "Lead", {
-          content_name: service,
-          lead_id: leadId,
-        });
+        try {
+          window.fbq("track", "Lead", {
+            content_name: service,
+            lead_id: leadId,
+          });
+        } catch (error) {
+          console.warn("⚠️ Facebook Pixel error:", error);
+        }
       }
     },
     [trackEvent]
