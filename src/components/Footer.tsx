@@ -52,7 +52,7 @@ export default function Footer() {
               <div className="relative w-10 h-10 flex items-center justify-center">
                 {/* Nota: En Next.js/Astro, la ruta a public es directa con / */}
                 <img
-                  src="/public/logo.png"
+                  src="/logo.png"
                   alt="Logo AI Revolution"
                   className="w-full h-full object-contain"
                   loading="lazy"
