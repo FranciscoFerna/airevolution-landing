@@ -34,12 +34,12 @@ const RECAPTCHA_SITE_KEY = import.meta.env.PUBLIC_RECAPTCHA_SITE_KEY || "";
 // SCHEMA JSON-LD
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "LocalBusiness",
+  "@type": "ProfessionalService",
   "name": "AI Revolution",
-  "alternateName": "AI Revolution S.L.",
+  "alternateName": "Francisco Fernández Navarro",
   "description": "Automatización e Inteligencia Artificial para Empresas",
-  "url": "https://airevolution.es",
-  "image": "https://airevolution.es/logo.png",
+  "url": Astro.site ? Astro.site.href : "https://airevolution-landing.vercel.app/",
+  "image": new URL("/logo.png", Astro.site || "https://airevolution-landing.vercel.app").href,
   "address": {
     "@type": "PostalAddress",
     "streetAddress": "Carrer Casals",
@@ -50,16 +50,10 @@ const jsonLd = {
   "contactPoint": {
     "@type": "ContactPoint",
     "contactType": "sales",
-    "telephone": "+34-XXX-XXX-XXX",
     "email": "airevolutionofficial1@gmail.com"
   },
   "areaServed": "ES",
-  "priceRange": "$$",
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.8",
-    "ratingCount": "50"
-  }
+  "priceRange": "$$"
 };
 ---
 
