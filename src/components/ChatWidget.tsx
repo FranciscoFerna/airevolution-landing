@@ -7,6 +7,7 @@ export default function N8nChatWidget() {
     let destroyed = false;
 
     const initChat = async () => {
+      // 1. Inyectar el CSS global de n8n (necesario para la posición del launcher)
       if (!document.getElementById("n8n-chat-style")) {
         const link = document.createElement("link");
         link.id = "n8n-chat-style";
@@ -15,6 +16,7 @@ export default function N8nChatWidget() {
         document.head.appendChild(link);
       }
 
+      // 2. Cargar el script
       if (document.getElementById("n8n-chat-script")) {
         checkAndInit();
         return;
@@ -22,8 +24,7 @@ export default function N8nChatWidget() {
 
       const script = document.createElement("script");
       script.id = "n8n-chat-script";
-      script.src =
-        "https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.umd.js";
+      script.src = "https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.umd.js";
       script.async = true;
       script.onload = checkAndInit;
       document.body.appendChild(script);
@@ -32,13 +33,12 @@ export default function N8nChatWidget() {
     const checkAndInit = () => {
       if (destroyed) return;
 
+      // Intentar encontrar la función en window o window.N8nChat
       const n8nLib = (window as any).N8nChat;
-      const createChatFunc =
-        (window as any).createChat || (n8nLib && n8nLib.createChat);
+      const createChatFunc = (window as any).createChat || (n8nLib && n8nLib.createChat);
 
       if (typeof createChatFunc === "function") {
-        const PROXY_URL =
-          "https://white-field-e6ecai-revolution-proxy.fraanfeernaandeez.workers.dev";
+        const PROXY_URL = "https://white-field-e6ecai-revolution-proxy.fraanfeernaandeez.workers.dev";
 
         createChatFunc({
           webhookUrl: `${PROXY_URL}/webhook/f61e1b9f-0f81-46b8-828e-668bfeeeb3eb/chat`,
@@ -60,7 +60,6 @@ export default function N8nChatWidget() {
             launcherButtonPosition: "bottom-right",
           },
         });
-
         observeAndInjectStyles();
       } else {
         setTimeout(checkAndInit, 100);
@@ -83,94 +82,38 @@ export default function N8nChatWidget() {
 
       const style = document.createElement("style");
       style.id = "ai-revolution-theme";
-
       style.textContent = `
-    :host {
-      --n8n-chat-primary-color: #FC31E6 !important;
-      --n8n-chat-background-color: #000 !important;
-      font-family: Inter, system-ui, sans-serif;
-    }
-
-    /* HEADER */
-    .chat-header {
-      background: #000 !important;
-      border-bottom: 2px solid #FC31E6 !important;
-    }
-
-    .chat-header__title {
-      color: white !important;
-      font-weight: 700 !important;
-    }
-
-    .chat-header__subtitle {
-      color: #FC31E6 !important;
-    }
-
-    /* CUERPO */
-    .chat-body {
-      background: #050505 !important;
-    }
-
-    /* MENSAJES */
-    .message--assistant {
-      background: #111 !important;
-      border-left: 3px solid #FC31E6 !important;
-      color: white !important;
-      border-radius: 14px !important;
-    }
-
-    .message--user {
-      background: #FC31E6 !important;
-      color: white !important;
-      border-radius: 14px !important;
-      font-weight: 500 !important;
-    }
-
-    /* INPUT */
-    .chat-footer {
-      background: #000 !important;
-      border-top: 1px solid #1a1a1a !important;
-    }
-
-    .chat-input {
-      background: #0f0f0f !important;
-      color: white !important;
-      border-radius: 10px !important;
-      border: 1px solid #1f1f1f !important;
-    }
-
-    .chat-input:focus {
-      border-color: #FC31E6 !important;
-    }
-
-    .chat-send-button {
-      background: #FC31E6 !important;
-      color: white !important;
-      border-radius: 10px !important;
-      font-weight: 600 !important;
-    }
-
-    /* BOTÓN FLOTANTE */
-    .launcher-button {
-      background: linear-gradient(135deg, #FC31E6 0%, #E91FD8 100%) !important;
-      width: 60px !important;
-      height: 60px !important;
-      border-radius: 50% !important;
-      box-shadow: 0 4px 20px rgba(252, 49, 230, 0.4) !important;
-    }
-
-    .launcher-button svg {
-      fill: white !important;
-    }
-  `;
-
+        :host {
+          --n8n-chat-primary-color: #FC31E6 !important;
+          --n8n-chat-background-color: #000000 !important;
+        }
+        /* Forzar posición flotante si el CSS global falla */
+        .chat-launcher {
+          position: fixed !important;
+          bottom: 20px !important;
+          right: 20px !important;
+          z-index: 9999 !important;
+        }
+        .chat-launcher button {
+          background: #FC31E6 !important;
+          width: 60px !important;
+          height: 60px !important;
+          border-radius: 50% !important;
+          box-shadow: 0 4px 15px rgba(252, 49, 230, 0.5) !important;
+        }
+        header {
+          background: #000 !important;
+          border-bottom: 2px solid #FC31E6 !important;
+        }
+        main { background: #050505 !important; }
+        .message.user { background: #FC31E6 !important; }
+        .message.assistant { background: #111 !important; border-left: 3px solid #FC31E6 !important; }
+      `;
       shadow.appendChild(style);
     };
 
     initChat();
-    return () => {
-      destroyed = true;
-    };
+    return () => { destroyed = true; };
   }, []);
 
   return null;
