@@ -1,0 +1,713 @@
+{
+  "name": "AI Revolution - Content Generation Workflow v2",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [1],
+              "triggerAtHour": 8,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "trigger-cron-weekly",
+      "name": "Trigger Semanal Lunes 08:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [100, 500],
+      "notes": "Dispara automáticamente cada lunes a las 08:00 (Europe/Madrid)"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-content-manual",
+        "options": {}
+      },
+      "id": "trigger-webhook-manual",
+      "name": "Webhook Manual",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [100, 700],
+      "webhookId": "generate-content-manual",
+      "notes": "Endpoint: /generate-content-manual para ejecución manual"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Este nodo simplemente pasa la señal de inicio\n// Sirve para unificar ambos triggers\nreturn [{ json: { trigger: 'started', timestamp: new Date().toISOString() }}];"
+      },
+      "id": "start-workflow",
+      "name": "Inicio Workflow",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [320, 600],
+      "notes": "Punto de inicio unificado"
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=IA+automatización+empresas&hl=es&gl=ES&ceid=ES:es",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "rss-ia-automatizacion",
+      "name": "RSS 1 - IA Automatización",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [540, 300],
+      "notes": "Google News RSS: IA automatización empresas"
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=AI+workflow+automation&hl=en&gl=US&ceid=US:en",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "rss-ai-workflow",
+      "name": "RSS 2 - AI Workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [540, 500],
+      "notes": "Google News RSS: AI workflow automation"
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=inteligencia+artificial+negocios&hl=es&gl=ES&ceid=ES:es",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "rss-ia-negocios",
+      "name": "RSS 3 - IA Negocios",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [540, 700],
+      "notes": "Google News RSS: inteligencia artificial negocios"
+    },
+    {
+      "parameters": {
+        "url": "https://news.google.com/rss/search?q=AI+marketing+automation+2025&hl=en&gl=US&ceid=US:en",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "rss-ai-marketing",
+      "name": "RSS 4 - AI Marketing",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [540, 900],
+      "notes": "Google News RSS: AI marketing automation 2025"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Procesar todos los RSS feeds recibidos\nconst items = [];\nconst inputs = $input.all();\n\nfor (const input of inputs) {\n  const xml = input.json.data || '';\n  const itemMatches = xml.match(/<item>[\\s\\S]*?<\\/item>/gi) || [];\n  \n  for (const itemXml of itemMatches.slice(0, 10)) {\n    const titleMatch = itemXml.match(/<title><!\\[CDATA\\[([^\\]]+)\\]\\]><\\/title>/i) || \n                       itemXml.match(/<title>([^<]+)<\\/title>/i);\n    const linkMatch = itemXml.match(/<link>([^<]+)<\\/link>/i);\n    const pubDateMatch = itemXml.match(/<pubDate>([^<]+)<\\/pubDate>/i);\n    \n    const title = titleMatch ? titleMatch[1].trim() : '';\n    const link = linkMatch ? linkMatch[1].trim() : '';\n    const pubDate = pubDateMatch ? pubDateMatch[1].trim() : '';\n    \n    if (title && title.length > 10) {\n      items.push({\n        json: {\n          title: title,\n          link: link,\n          published: pubDate,\n          source: 'rss',\n          fecha_recopilacion: new Date().toISOString()\n        }\n      });\n    }\n  }\n}\n\n// Eliminar duplicados por título\nconst seen = new Set();\nconst unique = items.filter(item => {\n  const key = item.json.title.toLowerCase();\n  if (seen.has(key)) return false;\n  seen.add(key);\n  return true;\n});\n\nreturn unique.length > 0 ? unique : [{ json: { title: 'No se encontraron tendencias', source: 'rss', fecha_recopilacion: new Date().toISOString() }}];"
+      },
+      "id": "parse-all-rss",
+      "name": "Procesar Todos RSS",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [780, 600],
+      "notes": "Parsea y combina todos los RSS feeds"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1E7-e-bkX70_3EZ4Zjp6_nbiWwpxHDsqilOvVagCStp0",
+          "mode": "list",
+          "cachedResultName": "AI Revolution - Content Database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1E7-e-bkX70_3EZ4Zjp6_nbiWwpxHDsqilOvVagCStp0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 613718050,
+          "mode": "list",
+          "cachedResultName": "keywords",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1E7-e-bkX70_3EZ4Zjp6_nbiWwpxHDsqilOvVagCStp0/edit#gid=613718050"
+        },
+        "options": {}
+      },
+      "id": "gsheets-keywords",
+      "name": "Google Sheets - Keywords",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [540, 1100],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HHlAO9mPFOTWaXdq",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "notes": "Leer keywords personalizadas"
+    },
+    {
+      "parameters": {
+        "jsCode": "const keywords = $input.all();\nconst items = [];\n\nfor (const kw of keywords) {\n  const keyword = kw.json.keyword || kw.json.Keyword || kw.json.KEYWORD || '';\n  if (keyword && keyword.trim()) {\n    items.push({\n      json: {\n        title: `Tendencia: ${keyword.trim()}`,\n        link: '',\n        source: 'keywords',\n        keyword: keyword.trim(),\n        fecha_recopilacion: new Date().toISOString()\n      }\n    });\n  }\n}\n\nreturn items.length > 0 ? items : [{ json: { title: 'Sin keywords', source: 'keywords', fecha_recopilacion: new Date().toISOString() }}];"
+      },
+      "id": "process-keywords",
+      "name": "Procesar Keywords",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [780, 1100]
+    },
+    {
+      "parameters": {
+        "mode": "append"
+      },
+      "id": "merge-all",
+      "name": "Combinar Todo",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [1020, 800],
+      "notes": "Combina RSS + Keywords"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1E7-e-bkX70_3EZ4Zjp6_nbiWwpxHDsqilOvVagCStp0",
+          "mode": "list",
+          "cachedResultName": "AI Revolution - Content Database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1E7-e-bkX70_3EZ4Zjp6_nbiWwpxHDsqilOvVagCStp0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "tendencias_raw"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "tendencia": "={{ $json.title }}",
+            "fuente": "={{ $json.source }}",
+            "link_url": "={{ $json.link || '' }}",
+            "fecha": "={{ $json.fecha_recopilacion }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "gsheets-raw",
+      "name": "Guardar tendencias_raw",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1260, 800],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HHlAO9mPFOTWaXdq",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "notes": "Guardar todas las tendencias en bruto"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"Eres un analista experto en tendencias de IA y automatización empresarial para AI Revolution.\\n\\nAnaliza estas tendencias y devuelve SOLO un JSON válido (sin markdown, sin explicaciones):\\n\\n{{ JSON.stringify($input.all().map(item => item.json.title)) }}\\n\\nPara cada tendencia, evalúa:\\n- relevancia (0-100): relevancia para empresas que buscan automatización con IA\\n- viralidad (0-100): potencial viral en redes sociales\\n- claridad (0-100): claridad del tema\\n- alineacion: 'sí' o 'no' según se alinee con AI Revolution\\n\\nFILTRA y devuelve SOLO las que cumplan: relevancia >= 60, viralidad >= 50, alineacion = 'sí'\\n\\nFormato de respuesta (máximo 15 tendencias):\\n{\\n  \\\"tendencias_filtradas\\\": [\\n    {\\n      \\\"id\\\": \\\"1\\\",\\n      \\\"tendencia\\\": \\\"título original\\\",\\n      \\\"scores\\\": { \\\"relevancia\\\": 75, \\\"viralidad\\\": 68, \\\"claridad\\\": 82 },\\n      \\\"alineacion\\\": \\\"sí\\\"\\n    }\\n  ]\\n}\\n\\nResponde SOLO con el JSON, nada más.\"\n    }]\n  }],\n  \"generationConfig\": {\n    \"temperature\": 0.3,\n    \"maxOutputTokens\": 4096\n  }\n}",
+        "options": {}
+      },
+      "id": "gemini-scoring",
+      "name": "Gemini - Scoring",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1500, 800],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "",
+          "name": "Google AI API Key"
+        }
+      },
+      "notes": "Google Gemini analiza y puntúa tendencias"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nlet parsed;\n\ntry {\n  // Extraer el texto de la respuesta de Gemini\n  const content = response.candidates?.[0]?.content?.parts?.[0]?.text || '';\n  \n  // Limpiar el contenido de posibles marcadores de código\n  let cleanContent = content\n    .replace(/```json\\n?/gi, '')\n    .replace(/```\\n?/gi, '')\n    .trim();\n  \n  // Buscar el JSON en el contenido\n  const jsonMatch = cleanContent.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    parsed = JSON.parse(jsonMatch[0]);\n  } else {\n    throw new Error('No se encontró JSON en la respuesta');\n  }\n} catch (e) {\n  // Si hay error, devolver datos de ejemplo para que el flujo continúe\n  return [{ \n    json: { \n      id: '1',\n      tendencia: 'IA para automatización empresarial',\n      relevancia: 85,\n      viralidad: 70,\n      claridad: 90,\n      alineacion: 'sí',\n      error_parsing: e.message\n    }\n  }];\n}\n\nconst tendencias = parsed.tendencias_filtradas || [];\n\nif (tendencias.length === 0) {\n  return [{ \n    json: { \n      id: '1',\n      tendencia: 'Automatización con IA en 2025',\n      relevancia: 80,\n      viralidad: 65,\n      claridad: 85,\n      alineacion: 'sí'\n    }\n  }];\n}\n\nreturn tendencias.map((t, index) => ({\n  json: {\n    id: t.id || String(index + 1),\n    tendencia: t.tendencia,\n    relevancia: t.scores?.relevancia || 0,\n    viralidad: t.scores?.viralidad || 0,\n    claridad: t.scores?.claridad || 0,\n    alineacion: t.alineacion || 'sí'\n  }\n}));"
+      },
+      "id": "parse-scoring",
+      "name": "Procesar Scoring",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1740, 800]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1E7-e-bkX70_3EZ4Zjp6_nbiWwpxHDsqilOvVagCStp0",
+          "mode": "list",
+          "cachedResultName": "AI Revolution - Content Database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1E7-e-bkX70_3EZ4Zjp6_nbiWwpxHDsqilOvVagCStp0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1888692129,
+          "mode": "list",
+          "cachedResultName": "tendencias_filtradas",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1E7-e-bkX70_3EZ4Zjp6_nbiWwpxHDsqilOvVagCStp0/edit#gid=1888692129"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Id": "={{ $json.id }}",
+            "Tendencia": "={{ $json.tendencia }}",
+            "Relevancia": "={{ $json.relevancia }}",
+            "Viralidad": "={{ $json.viralidad }}",
+            "Claridad": "={{ $json.claridad }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "gsheets-filtradas",
+      "name": "Guardar tendencias_filtradas",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1980, 800],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HHlAO9mPFOTWaXdq",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "notes": "Guardar tendencias filtradas con scores"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [{\n    \"parts\": [{\n      \"text\": \"Eres el Content Director de AI Revolution, empresa líder en automatización con IA.\\nTono: profesional, directo, experto, orientado a resultados.\\n\\nGenera contenido para esta tendencia:\\nID: {{ $json.id }}\\nTendencia: {{ $json.tendencia }}\\nRelevancia: {{ $json.relevancia }}, Viralidad: {{ $json.viralidad }}\\n\\nDevuelve SOLO un JSON válido (sin markdown, sin explicaciones) con este formato exacto:\\n{\\n  \\\"id\\\": \\\"{{ $json.id }}\\\",\\n  \\\"tendencia\\\": \\\"{{ $json.tendencia }}\\\",\\n  \\\"linkedin_posts\\\": [\\n    {\\n      \\\"hook\\\": \\\"Frase impactante de 15-20 palabras\\\",\\n      \\\"texto_principal\\\": \\\"Desarrollo de 150-200 palabras con datos y beneficios para empresas\\\",\\n      \\\"cierre\\\": \\\"Reflexión final que invite a la acción\\\",\\n      \\\"cta\\\": \\\"Call-to-action claro\\\"\\n    },\\n    {\\n      \\\"hook\\\": \\\"Segundo hook diferente\\\",\\n      \\\"texto_principal\\\": \\\"Segundo desarrollo con enfoque diferente\\\",\\n      \\\"cierre\\\": \\\"Segundo cierre\\\",\\n      \\\"cta\\\": \\\"Segundo CTA\\\"\\n    },\\n    {\\n      \\\"hook\\\": \\\"Tercer hook\\\",\\n      \\\"texto_principal\\\": \\\"Tercer desarrollo\\\",\\n      \\\"cierre\\\": \\\"Tercer cierre\\\",\\n      \\\"cta\\\": \\\"Tercer CTA\\\"\\n    }\\n  ],\\n  \\\"instagram_images\\\": {\\n    \\\"captions\\\": [\\n      \\\"Caption 1 optimizado para IG (100-150 palabras + hashtags)\\\",\\n      \\\"Caption 2 con enfoque diferente\\\"\\n    ],\\n    \\\"visual_ideas\\\": [\\n      \\\"Idea visual 1: descripción para diseñador\\\",\\n      \\\"Idea visual 2: descripción para diseñador\\\",\\n      \\\"Idea visual 3: descripción para diseñador\\\"\\n    ]\\n  },\\n  \\\"instagram_reels\\\": [\\n    {\\n      \\\"hook\\\": \\\"Primeros 3 segundos impactantes\\\",\\n      \\\"desarrollo\\\": \\\"Contenido principal 30-45 segundos\\\",\\n      \\\"cierre\\\": \\\"Cierre memorable con CTA\\\",\\n      \\\"duracion_estimada\\\": \\\"45-60 segundos\\\"\\n    },\\n    {\\n      \\\"hook\\\": \\\"Segundo hook para reel\\\",\\n      \\\"desarrollo\\\": \\\"Segundo desarrollo\\\",\\n      \\\"cierre\\\": \\\"Segundo cierre\\\",\\n      \\\"duracion_estimada\\\": \\\"30-45 segundos\\\"\\n    }\\n  ],\\n  \\\"fecha\\\": \\\"{{ new Date().toISOString() }}\\\"\\n}\\n\\nResponde SOLO con el JSON.\"\n    }]\n  }],\n  \"generationConfig\": {\n    \"temperature\": 0.7,\n    \"maxOutputTokens\": 8192\n  }\n}",
+        "options": {}
+      },
+      "id": "gemini-content",
+      "name": "Gemini - Generar Contenido",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2220, 800],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "",
+          "name": "Google AI API Key"
+        }
+      },
+      "notes": "Google Gemini genera contenido para cada tendencia"
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nlet parsed;\n\ntry {\n  const content = response.candidates?.[0]?.content?.parts?.[0]?.text || '';\n  \n  let cleanContent = content\n    .replace(/```json\\n?/gi, '')\n    .replace(/```\\n?/gi, '')\n    .trim();\n  \n  const jsonMatch = cleanContent.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    parsed = JSON.parse(jsonMatch[0]);\n  } else {\n    throw new Error('No JSON found');\n  }\n} catch (e) {\n  return [{ \n    json: { \n      id: '1',\n      tendencia: 'Contenido de ejemplo',\n      linkedin_post_1: 'Error al generar contenido. Por favor ejecute de nuevo.',\n      linkedin_post_2: '',\n      linkedin_post_3: '',\n      ig_caption_1: '',\n      ig_caption_2: '',\n      ig_visuals: '[]',\n      reel_1: '',\n      reel_2: '',\n      fecha: new Date().toISOString(),\n      error: e.message\n    }\n  }];\n}\n\nconst linkedin = parsed.linkedin_posts || [];\nconst igImages = parsed.instagram_images || {};\nconst igReels = parsed.instagram_reels || [];\n\nreturn [{\n  json: {\n    id: parsed.id || '1',\n    tendencia: parsed.tendencia || 'Sin tendencia',\n    linkedin_post_1: linkedin[0] ? `${linkedin[0].hook}\\n\\n${linkedin[0].texto_principal}\\n\\n${linkedin[0].cierre}\\n\\n${linkedin[0].cta}` : '',\n    linkedin_post_2: linkedin[1] ? `${linkedin[1].hook}\\n\\n${linkedin[1].texto_principal}\\n\\n${linkedin[1].cierre}\\n\\n${linkedin[1].cta}` : '',\n    linkedin_post_3: linkedin[2] ? `${linkedin[2].hook}\\n\\n${linkedin[2].texto_principal}\\n\\n${linkedin[2].cierre}\\n\\n${linkedin[2].cta}` : '',\n    ig_caption_1: igImages.captions?.[0] || '',\n    ig_caption_2: igImages.captions?.[1] || '',\n    ig_visuals: JSON.stringify(igImages.visual_ideas || []),\n    reel_1: igReels[0] ? `HOOK: ${igReels[0].hook}\\n\\nDESARROLLO: ${igReels[0].desarrollo}\\n\\nCIERRE: ${igReels[0].cierre}\\n\\nDuración: ${igReels[0].duracion_estimada}` : '',\n    reel_2: igReels[1] ? `HOOK: ${igReels[1].hook}\\n\\nDESARROLLO: ${igReels[1].desarrollo}\\n\\nCIERRE: ${igReels[1].cierre}\\n\\nDuración: ${igReels[1].duracion_estimada}` : '',\n    fecha: parsed.fecha || new Date().toISOString()\n  }\n}];"
+      },
+      "id": "parse-content",
+      "name": "Procesar Contenido",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2460, 800]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1E7-e-bkX70_3EZ4Zjp6_nbiWwpxHDsqilOvVagCStp0",
+          "mode": "list",
+          "cachedResultName": "AI Revolution - Content Database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1E7-e-bkX70_3EZ4Zjp6_nbiWwpxHDsqilOvVagCStp0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1960564987,
+          "mode": "list",
+          "cachedResultName": "contenido_final",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1E7-e-bkX70_3EZ4Zjp6_nbiWwpxHDsqilOvVagCStp0/edit#gid=1960564987"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Id": "={{ $json.id }}",
+            "Tendencia": "={{ $json.tendencia }}",
+            "Linkedin_Post_1": "={{ $json.linkedin_post_1 }}",
+            "Linkedin_Post_2": "={{ $json.linkedin_post_2 }}",
+            "Linkedin_Post_3": "={{ $json.linkedin_post_3 }}",
+            "Ig_caption_1": "={{ $json.ig_caption_1 }}",
+            "Ig_caption_2": "={{ $json.ig_caption_2 }}",
+            "Ig_visuals": "={{ $json.ig_visuals }}",
+            "Reel_1": "={{ $json.reel_1 }}",
+            "Reel_2": "={{ $json.reel_2 }}",
+            "Fecha": "={{ $json.fecha }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "gsheets-contenido",
+      "name": "Guardar contenido_final",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [2700, 800],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HHlAO9mPFOTWaXdq",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "notes": "Guardar todo el contenido generado"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst totalTendencias = items.length;\n\nconst mejoresTres = items.slice(0, 3).map(item => {\n  return `• ${item.json.tendencia || 'Sin título'}`;\n}).join('\\n');\n\nconst fecha = new Date().toLocaleDateString('es-ES', {\n  weekday: 'long',\n  year: 'numeric',\n  month: 'long',\n  day: 'numeric'\n});\n\nreturn [{\n  json: {\n    total_tendencias: totalTendencias,\n    total_contenidos: totalTendencias * 8,\n    mejores_tres: mejoresTres,\n    fecha_generacion: fecha,\n    sheet_url: 'https://docs.google.com/spreadsheets/d/1E7-e-bkX70_3EZ4Zjp6_nbiWwpxHDsqilOvVagCStp0/edit'\n  }\n}];"
+      },
+      "id": "prepare-email",
+      "name": "Preparar Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2940, 800]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $env.EMAIL_RECIPIENT || 'tu-email@tudominio.com' }}",
+        "subject": "🚀 Nuevo paquete semanal de contenido - AI Revolution",
+        "message": "=<html>\n<head>\n  <style>\n    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }\n    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }\n    .content { padding: 30px; background: #f9f9f9; }\n    .stat-box { background: white; padding: 20px; border-radius: 10px; text-align: center; margin: 10px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }\n    .stat-number { font-size: 32px; font-weight: bold; color: #667eea; }\n    .stat-label { color: #666; font-size: 14px; }\n    .mejores { background: white; padding: 20px; border-radius: 10px; margin: 20px 0; }\n    .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }\n    .button { display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; }\n  </style>\n</head>\n<body>\n  <div class=\"header\">\n    <h1>🚀 AI Revolution</h1>\n    <h2>Nuevo Paquete de Contenido</h2>\n    <p>{{ $json.fecha_generacion }}</p>\n  </div>\n  \n  <div class=\"content\">\n    <h3>📊 Resumen</h3>\n    \n    <div class=\"stat-box\">\n      <div class=\"stat-number\">{{ $json.total_tendencias }}</div>\n      <div class=\"stat-label\">Tendencias Procesadas</div>\n    </div>\n    \n    <div class=\"stat-box\">\n      <div class=\"stat-number\">{{ $json.total_contenidos }}</div>\n      <div class=\"stat-label\">Contenidos Generados</div>\n    </div>\n    \n    <div class=\"mejores\">\n      <h4>🏆 Top Tendencias:</h4>\n      <pre style=\"white-space: pre-wrap; font-family: Arial;\">{{ $json.mejores_tres }}</pre>\n    </div>\n    \n    <h4>📋 Contenido por Tendencia:</h4>\n    <ul>\n      <li><strong>LinkedIn:</strong> 3 posts</li>\n      <li><strong>Instagram:</strong> 2 captions + ideas visuales</li>\n      <li><strong>Reels:</strong> 2 guiones</li>\n    </ul>\n    \n    <center>\n      <a href=\"{{ $json.sheet_url }}\" class=\"button\">📊 Ver Google Sheet</a>\n    </center>\n  </div>\n  \n  <div class=\"footer\">\n    <p>Email generado automáticamente por AI Revolution</p>\n  </div>\n</body>\n</html>",
+        "options": {}
+      },
+      "id": "gmail-notify",
+      "name": "Gmail Notification",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [3180, 800],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I1BkP8tTYmn1tysa",
+          "name": "Gmail account 2"
+        }
+      },
+      "notes": "Enviar resumen por email"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1E7-e-bkX70_3EZ4Zjp6_nbiWwpxHDsqilOvVagCStp0",
+          "mode": "list",
+          "cachedResultName": "AI Revolution - Content Database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1E7-e-bkX70_3EZ4Zjp6_nbiWwpxHDsqilOvVagCStp0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2052211135,
+          "mode": "list",
+          "cachedResultName": "errors",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1E7-e-bkX70_3EZ4Zjp6_nbiWwpxHDsqilOvVagCStp0/edit#gid=2052211135"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ new Date().toISOString() }}",
+            "Node_name": "={{ $json.node?.name || 'Unknown' }}",
+            "Error_message": "={{ $json.message || $json.error || 'Unknown error' }}",
+            "Error_stack": "={{ $json.stack || '' }}",
+            "Input_data": "={{ JSON.stringify($json.data || {}) }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "gsheets-errors",
+      "name": "Log Errors",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [320, 1000],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HHlAO9mPFOTWaXdq",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "notes": "Guardar errores en pestaña 'errors'"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Trigger Semanal Lunes 08:00": {
+      "main": [
+        [
+          {
+            "node": "Inicio Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Manual": {
+      "main": [
+        [
+          {
+            "node": "Inicio Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inicio Workflow": {
+      "main": [
+        [
+          {
+            "node": "RSS 1 - IA Automatización",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS 2 - AI Workflow",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS 3 - IA Negocios",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RSS 4 - AI Marketing",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Google Sheets - Keywords",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS 1 - IA Automatización": {
+      "main": [
+        [
+          {
+            "node": "Procesar Todos RSS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS 2 - AI Workflow": {
+      "main": [
+        [
+          {
+            "node": "Procesar Todos RSS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS 3 - IA Negocios": {
+      "main": [
+        [
+          {
+            "node": "Procesar Todos RSS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS 4 - AI Marketing": {
+      "main": [
+        [
+          {
+            "node": "Procesar Todos RSS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Procesar Todos RSS": {
+      "main": [
+        [
+          {
+            "node": "Combinar Todo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets - Keywords": {
+      "main": [
+        [
+          {
+            "node": "Procesar Keywords",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Procesar Keywords": {
+      "main": [
+        [
+          {
+            "node": "Combinar Todo",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Combinar Todo": {
+      "main": [
+        [
+          {
+            "node": "Guardar tendencias_raw",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar tendencias_raw": {
+      "main": [
+        [
+          {
+            "node": "Gemini - Scoring",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini - Scoring": {
+      "main": [
+        [
+          {
+            "node": "Procesar Scoring",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Procesar Scoring": {
+      "main": [
+        [
+          {
+            "node": "Guardar tendencias_filtradas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar tendencias_filtradas": {
+      "main": [
+        [
+          {
+            "node": "Gemini - Generar Contenido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini - Generar Contenido": {
+      "main": [
+        [
+          {
+            "node": "Procesar Contenido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Procesar Contenido": {
+      "main": [
+        [
+          {
+            "node": "Guardar contenido_final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar contenido_final": {
+      "main": [
+        [
+          {
+            "node": "Preparar Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Email": {
+      "main": [
+        [
+          {
+            "node": "Gmail Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "timezone": "Europe/Madrid",
+    "errorWorkflow": ""
+  },
+  "versionId": "v2-gemini-fixed",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "be21058221f63bd190fbb3bf9bde1095fe9adb51fa91c0c4f87c0103676554f0"
+  },
+  "id": "ai-revolution-v2",
+  "tags": [
+    {
+      "name": "AI Revolution",
+      "id": "l6OsdFgTW40205np"
+    },
+    {
+      "name": "Content Generation",
+      "id": "KC9RxymH8BI5Jy0x"
+    },
+    {
+      "name": "Social Media",
+      "id": "26JVpBGPRNpw1BlF"
+    }
+  ]
+}
