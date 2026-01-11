@@ -3,7 +3,11 @@
 import { useState, useEffect, useCallback } from "react";
 
 // Tipos de cookies
-export type CookieCategory = "necessary" | "analytics" | "marketing" | "preferences";
+export type CookieCategory =
+  | "necessary"
+  | "analytics"
+  | "marketing"
+  | "preferences";
 
 export interface CookieConsent {
   necessary: boolean; // Siempre true
@@ -19,25 +23,29 @@ const cookieCategories = [
   {
     id: "necessary" as CookieCategory,
     name: "Cookies necesarias",
-    description: "Imprescindibles para el funcionamiento del sitio. No se pueden desactivar.",
+    description:
+      "Imprescindibles para el funcionamiento del sitio. No se pueden desactivar.",
     required: true,
   },
   {
     id: "analytics" as CookieCategory,
     name: "Cookies de análisis",
-    description: "Nos ayudan a entender cómo usas el sitio para mejorarlo (Google Analytics).",
+    description:
+      "Nos ayudan a entender cómo usas el sitio para mejorarlo (Google Analytics).",
     required: false,
   },
   {
     id: "marketing" as CookieCategory,
     name: "Cookies de marketing",
-    description: "Permiten mostrarte anuncios relevantes en otras plataformas (Meta, Google Ads).",
+    description:
+      "Permiten mostrarte anuncios relevantes en otras plataformas (Meta, Google Ads).",
     required: false,
   },
   {
     id: "preferences" as CookieCategory,
     name: "Cookies de preferencias",
-    description: "Guardan tus preferencias como idioma o configuración de sesión.",
+    description:
+      "Guardan tus preferencias como idioma o configuración de sesión.",
     required: false,
   },
 ];
@@ -49,18 +57,18 @@ const CONSENT_KEY = "cookie_consent";
 // Obtener consentimiento guardado
 function getSavedConsent(): CookieConsent | null {
   if (typeof window === "undefined") return null;
-  
+
   try {
     const saved = localStorage.getItem(CONSENT_KEY);
     if (!saved) return null;
-    
+
     const consent = JSON.parse(saved) as CookieConsent;
-    
+
     // Verificar versión
     if (consent.version !== CONSENT_VERSION) {
       return null; // Forzar nueva aceptación si cambia la versión
     }
-    
+
     return consent;
   } catch {
     return null;
@@ -70,11 +78,13 @@ function getSavedConsent(): CookieConsent | null {
 // Guardar consentimiento
 function saveConsent(consent: CookieConsent): void {
   if (typeof window === "undefined") return;
-  
+
   localStorage.setItem(CONSENT_KEY, JSON.stringify(consent));
-  
+
   // Disparar evento para que otros scripts puedan escuchar
-  window.dispatchEvent(new CustomEvent("cookieConsentUpdate", { detail: consent }));
+  window.dispatchEvent(
+    new CustomEvent("cookieConsentUpdate", { detail: consent })
+  );
 }
 
 // Aplicar consentimiento a scripts de terceros
@@ -134,7 +144,7 @@ export function useCookieConsent() {
     const saved = getSavedConsent();
     setConsent(saved);
     setIsLoaded(true);
-    
+
     if (saved) {
       applyConsent(saved);
     }
@@ -149,7 +159,7 @@ export function useCookieConsent() {
       timestamp: new Date().toISOString(),
       version: CONSENT_VERSION,
     };
-    
+
     setConsent(fullConsent);
     saveConsent(fullConsent);
     applyConsent(fullConsent);
@@ -213,7 +223,7 @@ export default function CookieBanner({
   };
 
   return (
-    <div 
+    <div
       className="fixed bottom-0 left-0 right-0 z-[9999] animate-fade-in"
       role="dialog"
       aria-label="Configuración de cookies"
@@ -229,10 +239,11 @@ export default function CookieBanner({
                   🍪 Usamos cookies
                 </h2>
                 <p id="cookie-description" className="text-sm text-[#475569]">
-                  Utilizamos cookies para mejorar tu experiencia, analizar el tráfico y personalizar 
-                  contenido. Puedes aceptar todas, rechazarlas o personalizar tu elección.{" "}
-                  <a 
-                    href={cookiePolicyUrl} 
+                  Utilizamos cookies para mejorar tu experiencia, analizar el
+                  tráfico y personalizar contenido. Puedes aceptar todas,
+                  rechazarlas o personalizar tu elección.{" "}
+                  <a
+                    href={cookiePolicyUrl}
                     className="text-[#6C08B6] hover:underline"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -241,7 +252,7 @@ export default function CookieBanner({
                   </a>
                 </p>
               </div>
-              
+
               <div className="flex flex-wrap gap-2 sm:gap-3">
                 <button
                   onClick={() => setShowDetails(true)}
@@ -277,20 +288,31 @@ export default function CookieBanner({
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                   aria-label="Cerrar configuración"
                 >
-                  <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="w-5 h-5 text-gray-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
 
               <p className="text-sm text-[#475569] mb-4">
-                Selecciona qué tipos de cookies quieres aceptar. Las cookies necesarias 
-                no se pueden desactivar ya que son imprescindibles para el funcionamiento del sitio.
+                Selecciona qué tipos de cookies quieres aceptar. Las cookies
+                necesarias no se pueden desactivar ya que son imprescindibles
+                para el funcionamiento del sitio.
               </p>
 
               <div className="space-y-3 mb-6">
                 {cookieCategories.map((category) => (
-                  <div 
+                  <div
                     key={category.id}
                     className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg"
                   >
@@ -298,23 +320,33 @@ export default function CookieBanner({
                       <input
                         type="checkbox"
                         id={`cookie-${category.id}`}
-                        checked={category.required || customConsent[category.id] || false}
+                        checked={
+                          category.required ||
+                          customConsent[category.id] ||
+                          false
+                        }
                         disabled={category.required}
-                        onChange={() => !category.required && toggleCategory(category.id)}
+                        onChange={() =>
+                          !category.required && toggleCategory(category.id)
+                        }
                         className="w-4 h-4 rounded border-gray-300 text-[#6C08B6] focus:ring-[#6C08B6] disabled:opacity-50"
                       />
                     </div>
                     <div className="flex-1">
-                      <label 
+                      <label
                         htmlFor={`cookie-${category.id}`}
                         className="font-medium text-[#334155] text-sm cursor-pointer"
                       >
                         {category.name}
                         {category.required && (
-                          <span className="ml-2 text-xs text-gray-400">(Obligatorias)</span>
+                          <span className="ml-2 text-xs text-gray-400">
+                            (Obligatorias)
+                          </span>
                         )}
                       </label>
-                      <p className="text-xs text-[#475569] mt-0.5">{category.description}</p>
+                      <p className="text-xs text-[#475569] mt-0.5">
+                        {category.description}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -342,13 +374,20 @@ export default function CookieBanner({
               </div>
 
               <p className="text-xs text-gray-400 mt-4">
-                Puedes cambiar tu configuración en cualquier momento desde el enlace "Configuración de cookies" 
-                en el pie de página. Consulta nuestra{" "}
-                <a href={privacyPolicyUrl} className="underline hover:text-[#6C08B6]">
+                Puedes cambiar tu configuración en cualquier momento desde el
+                enlace "Configuración de cookies" en el pie de página. Consulta
+                nuestra{" "}
+                <a
+                  href={privacyPolicyUrl}
+                  className="underline hover:text-[#6C08B6]"
+                >
                   Política de Privacidad
                 </a>{" "}
                 y{" "}
-                <a href={cookiePolicyUrl} className="underline hover:text-[#6C08B6]">
+                <a
+                  href={cookiePolicyUrl}
+                  className="underline hover:text-[#6C08B6]"
+                >
                   Política de Cookies
                 </a>
                 .
@@ -401,25 +440,35 @@ export function CookieSettingsButton() {
       </button>
 
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
           role="dialog"
           aria-modal="true"
           aria-label="Configuración de cookies"
         >
-          <div 
+          <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setIsOpen(false)}
           />
-          
+
           <div className="relative bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 animate-scale-in">
             <button
               onClick={() => setIsOpen(false)}
               className="absolute top-4 right-4 p-2 hover:bg-gray-100 rounded-full"
               aria-label="Cerrar"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
 
@@ -429,26 +478,32 @@ export function CookieSettingsButton() {
 
             <div className="space-y-3 mb-6">
               {cookieCategories.map((category) => (
-                <div 
+                <div
                   key={category.id}
                   className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg"
                 >
                   <input
                     type="checkbox"
                     id={`settings-${category.id}`}
-                    checked={category.required || localConsent[category.id] || false}
+                    checked={
+                      category.required || localConsent[category.id] || false
+                    }
                     disabled={category.required}
-                    onChange={() => !category.required && toggleCategory(category.id)}
+                    onChange={() =>
+                      !category.required && toggleCategory(category.id)
+                    }
                     className="mt-0.5 w-4 h-4 rounded border-gray-300 text-[#6C08B6] focus:ring-[#6C08B6]"
                   />
                   <div>
-                    <label 
+                    <label
                       htmlFor={`settings-${category.id}`}
                       className="font-medium text-[#334155] text-sm cursor-pointer"
                     >
                       {category.name}
                     </label>
-                    <p className="text-xs text-[#475569] mt-0.5">{category.description}</p>
+                    <p className="text-xs text-[#475569] mt-0.5">
+                      {category.description}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -471,6 +526,8 @@ export function CookieSettingsButton() {
           </div>
         </div>
       )}
+      
     </>
+
   );
 }

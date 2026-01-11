@@ -1,5 +1,7 @@
 ---
+// src/layouts/MainLayout.astro
 import "../styles/global.css";
+
 // Optimización de fuentes
 import "@fontsource/inter/400.css";
 import "@fontsource/inter/500.css";
@@ -8,8 +10,7 @@ import "@fontsource/inter/700.css";
 import "@fontsource/inter/800.css";
 
 import Analytics from "@vercel/analytics/astro";
-// IMPORTANTE: El componente debe cargarse solo en el cliente
-import N8nChatWidget from "../components/ChatWidget.tsx";
+import ChatWidget from "../components/ChatWidget";
 
 interface Props {
   title?: string;
@@ -25,36 +26,49 @@ const {
   noIndex = false,
 } = Astro.props;
 
-const canonicalURL = new URL(
-  Astro.url.pathname,
-  Astro.site || "https://airevolution.es"
-);
-
-const GA_MEASUREMENT_ID = "G-V04T8BP151";
+// Variables de entorno
+const isDevelopment = import.meta.env.DEV;
+const siteUrl = Astro.site?.href || import.meta.env.PUBLIC_SITE_URL || "https://airevolution.es";
+const GA_MEASUREMENT_ID = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || "";
 const RECAPTCHA_SITE_KEY = import.meta.env.PUBLIC_RECAPTCHA_SITE_KEY || "";
 
+// Obtener URL del webhook para preconnect (opcional, mejora rendimiento)
+const webhookUrl = import.meta.env.PUBLIC_N8N_CHAT_WEBHOOK_URL || 
+                   (import.meta.env.PUBLIC_N8N_WEBHOOK_PROXY && import.meta.env.PUBLIC_N8N_WEBHOOK_ID
+                     ? `${import.meta.env.PUBLIC_N8N_WEBHOOK_PROXY}/webhook/${import.meta.env.PUBLIC_N8N_WEBHOOK_ID}/chat`
+                     : null);
+const webhookOrigin = webhookUrl ? new URL(webhookUrl).origin : null;
+
+// Canonical URL
+const canonicalURL = new URL(Astro.url.pathname, siteUrl);
+
+// JSON-LD para SEO
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "ProfessionalService",
-  "name": "AI Revolution",
-  "alternateName": "Francisco Fernández Navarro",
-  "description": "Automatización e Inteligencia Artificial para Empresas",
-  "url": Astro.site ? Astro.site.href : "https://airevolution-landing.vercel.app/",
-  "image": new URL("/logo.png", Astro.site || "https://airevolution-landing.vercel.app").href,
-  "address": {
+  name: "AI Revolution",
+  alternateName: "Francisco Fernández Navarro",
+  description: "Automatización e Inteligencia Artificial para Empresas",
+  url: siteUrl,
+  image: new URL("/logo.png", siteUrl).href,
+  address: {
     "@type": "PostalAddress",
-    "streetAddress": "Carrer Casals",
-    "addressLocality": "Barcelona",
-    "postalCode": "08031",
-    "addressCountry": "ES",
+    streetAddress: "Carrer Casals",
+    addressLocality: "Barcelona",
+    postalCode: "08031",
+    addressCountry: "ES",
   },
-  "contactPoint": {
+  contactPoint: {
     "@type": "ContactPoint",
-    "contactType": "sales",
-    "email": "airevolutionofficial1@gmail.com",
+    contactType: "sales",
+    email: "airevolutionofficial1@gmail.com",
   },
-  "areaServed": "ES",
-  "priceRange": "$$",
+  areaServed: "ES",
+  priceRange: "$$",
+  sameAs: [
+    "https://www.linkedin.com/in/ai-revolution-rai-70b2a5398/",
+    "https://www.instagram.com/ai_revolutionagency/",
+  ],
 };
 ---
 
@@ -65,71 +79,195 @@ const jsonLd = {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} />
 
+    <!-- Primary Meta Tags -->
     <title>{title}</title>
+    <meta name="title" content={title} />
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalURL} />
     <link rel="sitemap" href="/sitemap-index.xml" />
     {noIndex && <meta name="robots" content="noindex, nofollow" />}
 
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={new URL(ogImage, canonicalURL)} />
     <meta property="og:site_name" content="AI Revolution" />
+    <meta property="og:locale" content="es_ES" />
 
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={canonicalURL} />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={new URL(ogImage, canonicalURL)} />
 
+    <!-- Favicons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="theme-color" content="#0B0D73" />
+    <meta name="msapplication-TileColor" content="#0B0D73" />
 
+    <!-- Preconnect para recursos críticos externos -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    {GA_MEASUREMENT_ID && (
+      <>
+        <link rel="preconnect" href="https://www.google-analytics.com" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+      </>
+    )}
+    {webhookOrigin && (
+      <link rel="preconnect" href={webhookOrigin} />
+    )}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- DNS Prefetch para recursos secundarios -->
+    <link rel="dns-prefetch" href="https://www.google.com" />
+    <link rel="dns-prefetch" href="https://www.gstatic.com" />
+    <link rel="dns-prefetch" href="https://vercel.live" />
+
+    <!-- Structured Data (JSON-LD) -->
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
-    <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}></script>
-    <script is:inline define:vars={{ GA_MEASUREMENT_ID }}>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() { dataLayer.push(arguments); }
-      gtag("js", new Date());
-      gtag("consent", "default", {
-        ad_storage: "denied",
-        ad_user_data: "denied",
-        ad_personalization: "denied",
-        analytics_storage: "denied",
-      });
-      gtag("config", GA_MEASUREMENT_ID, { anonymize_ip: true });
-    </script>
+    <!-- Google Analytics 4 con Consent Mode v2 -->
+    {GA_MEASUREMENT_ID && (
+      <>
+        <script
+          is:inline
+          async
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+        ></script>
+        <script is:inline define:vars={{ GA_MEASUREMENT_ID }}>
+          window.dataLayer = window.dataLayer || [];
+          function gtag() {
+            dataLayer.push(arguments);
+          }
+          gtag("js", new Date());
 
+          // Consent Mode v2 - Iniciar en modo denied
+          gtag("consent", "default", {
+            ad_storage: "denied",
+            ad_user_data: "denied",
+            ad_personalization: "denied",
+            analytics_storage: "denied",
+            functionality_storage: "denied",
+            personalization_storage: "denied",
+            security_storage: "granted",
+            wait_for_update: 500,
+          });
+
+          // Configurar GA4
+          gtag("config", GA_MEASUREMENT_ID, {
+            anonymize_ip: true,
+            cookie_flags: "SameSite=None;Secure",
+            allow_google_signals: false,
+            allow_ad_personalization_signals: false,
+          });
+        </script>
+      </>
+    )}
+
+    <!-- Variables de entorno para el cliente -->
     <script is:inline define:vars={{ RECAPTCHA_SITE_KEY }}>
-      window.__ENV__ = { RECAPTCHA_SITE_KEY };
+      window.__ENV__ = {
+        RECAPTCHA_SITE_KEY: RECAPTCHA_SITE_KEY || "",
+      };
     </script>
   </head>
 
-  <body class="bg-white text-gray-900 antialiased selection:bg-[#FC31E6] selection:text-white">
-    <a href="#main-content" class="skip-link">Saltar al contenido</a>
+  <body
+    class="bg-white text-gray-900 antialiased selection:bg-[#FC31E6] selection:text-white"
+  >
+    <!-- Skip to main content (accesibilidad) -->
+    <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
 
     <main id="main-content">
       <slot />
       <Analytics />
+      <ChatWidget client:only="react" />
     </main>
-
-    <N8nChatWidget client:only="react" />
-
-    <script is:inline>
-      window.addEventListener("cookieConsentUpdate", function (e) {
-        const consent = e.detail;
-        if (typeof window.gtag === "function") {
-          window.gtag("consent", "update", {
-            analytics_storage: consent.analytics ? "granted" : "denied",
-            ad_storage: consent.marketing ? "granted" : "denied",
-            ad_user_data: consent.marketing ? "granted" : "denied",
-            ad_personalization: consent.marketing ? "granted" : "denied",
-          });
-        }
-      });
-    </script>
   </body>
+
+  <!-- Gestión de consentimiento de cookies -->
+  <script is:inline>
+    // Escuchar actualizaciones de consentimiento
+    window.addEventListener("cookieConsentUpdate", function (e) {
+      const consent = e.detail;
+
+      if (typeof window.gtag === "function") {
+        // Actualizar Google Analytics
+        window.gtag("consent", "update", {
+          analytics_storage: consent.analytics ? "granted" : "denied",
+          ad_storage: consent.marketing ? "granted" : "denied",
+          ad_user_data: consent.marketing ? "granted" : "denied",
+          ad_personalization: consent.marketing ? "granted" : "denied",
+          functionality_storage: consent.preferences ? "granted" : "denied",
+          personalization_storage: consent.preferences ? "granted" : "denied",
+        });
+
+        console.log("✅ Cookie consent updated:", consent);
+      }
+
+      // Actualizar Meta Pixel si existe
+      if (typeof window.fbq === "function") {
+        if (consent.marketing) {
+          window.fbq("consent", "grant");
+        } else {
+          window.fbq("consent", "revoke");
+        }
+      }
+    });
+
+    // Aplicar consentimiento guardado al cargar
+    (function () {
+      try {
+        const saved = localStorage.getItem("cookie_consent");
+        if (saved) {
+          const consent = JSON.parse(saved);
+          window.dispatchEvent(
+            new CustomEvent("cookieConsentUpdate", { detail: consent })
+          );
+        }
+      } catch (e) {
+        console.warn("Error loading saved consent:", e);
+      }
+    })();
+  </script>
+
+  <!-- Live region para anuncios de accesibilidad -->
+  <div
+    id="live-region"
+    class="live-region sr-only"
+    role="status"
+    aria-live="polite"
+    aria-atomic="true"
+  >
+  </div>
+
+  <!-- Performance monitoring (solo en producción) -->
+  {
+    !isDevelopment && (
+      <script is:inline>
+        {`
+          // Web Vitals básico
+          if ('PerformanceObserver' in window) {
+            try {
+              const observer = new PerformanceObserver((list) => {
+                for (const entry of list.getEntries()) {
+                  if (entry.entryType === 'largest-contentful-paint') {
+                    console.log('LCP:', entry.renderTime || entry.loadTime);
+                  }
+                }
+              });
+              observer.observe({ entryTypes: ['largest-contentful-paint'] });
+            } catch (e) {
+              // Silencioso en caso de error
+            }
+          }
+        `}
+      </script>
+    )
+  }
 </html>
