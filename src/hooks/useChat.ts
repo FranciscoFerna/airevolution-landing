@@ -94,13 +94,32 @@ export function useChat(options?: Partial<UseChatOptions>): UseChatReturn {
       connectionStatus: 'connected',
     }));
 
-    // Health check
-    apiRef.current.healthCheck().then(isHealthy => {
+    // Health check - solo si hay webhook configurado
+    if (config.api.webhookUrl && config.api.webhookUrl.trim() !== '') {
+      apiRef.current.healthCheck().then(isHealthy => {
+        setState(prev => ({
+          ...prev,
+          connectionStatus: isHealthy ? 'connected' : 'disconnected',
+        }));
+      }).catch(() => {
+        setState(prev => ({
+          ...prev,
+          connectionStatus: 'disconnected',
+        }));
+      });
+    } else {
+      // Si no hay webhook configurado, mostrar error de configuración
       setState(prev => ({
         ...prev,
-        connectionStatus: isHealthy ? 'connected' : 'disconnected',
+        connectionStatus: 'disconnected',
+        error: {
+          code: 'CONFIGURATION_ERROR',
+          message: 'El chat no está configurado. Por favor, contacta al administrador.',
+          retryable: false,
+          timestamp: new Date(),
+        },
       }));
-    });
+    }
 
     // Cleanup
     return () => {

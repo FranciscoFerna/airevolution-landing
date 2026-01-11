@@ -270,6 +270,9 @@ export const defaultBrandingConfig: ChatBrandingConfig = {
 /**
  * Obtener URL del webhook desde variables de entorno
  * Prioridad: PUBLIC_N8N_CHAT_WEBHOOK_URL > construir desde PROXY + ID
+ * 
+ * IMPORTANTE: En producción, si no hay variables configuradas, retorna una URL vacía
+ * en lugar de lanzar un error. El componente manejará esto gracefulmente.
  */
 function getWebhookUrl(): string {
   // Opción 1: URL completa desde variable de entorno
@@ -287,19 +290,15 @@ function getWebhookUrl(): string {
   }
 
   // ⚠️ FALLBACK SOLO PARA DESARROLLO LOCAL
-  // Este valor es temporal y SOLO se usa si no hay variables de entorno configuradas
-  // En producción, esto NUNCA debería ejecutarse - se lanzará un error si falta la variable
   if (import.meta.env.DEV) {
     // Valor temporal solo para desarrollo - NO usar en producción
     return 'https://white-field-e6ecai-revolution-proxy.fraanfeernaandeez.workers.dev/webhook/f61e1b9f-0f81-46b8-828e-668bfeeeb3eb/chat';
   }
 
-  // En producción, lanzar error si no está configurado
-  throw new Error(
-    'PUBLIC_N8N_CHAT_WEBHOOK_URL no está configurado. ' +
-    'Por favor, configura la variable de entorno PUBLIC_N8N_CHAT_WEBHOOK_URL o ' +
-    'PUBLIC_N8N_WEBHOOK_PROXY + PUBLIC_N8N_WEBHOOK_ID'
-  );
+  // En producción, retornar URL vacía en lugar de lanzar error
+  // El componente detectará esto y mostrará un mensaje de error graceful
+  // Esto evita que la app se rompa durante la hidratación
+  return '';
 }
 
 export const defaultApiConfig: ChatAPIConfig = {

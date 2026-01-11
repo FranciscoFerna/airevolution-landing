@@ -188,6 +188,7 @@ declare global {
     gtag: (...args: unknown[]) => void;
     dataLayer: unknown[];
     fbq: (...args: unknown[]) => void;
+    __sendGA4PageView?: () => void;
   }
 }
 

@@ -35,6 +35,15 @@ export class ChatAPI {
     message: string,
     metadata?: Record<string, unknown>
   ): Promise<SendMessageResponse> {
+    // Validar que el webhook esté configurado
+    if (!this.config.webhookUrl || this.config.webhookUrl.trim() === '') {
+      throw this.createChatError(
+        'CONFIGURATION_ERROR',
+        'El chat no está configurado correctamente. Por favor, contacta al administrador.',
+        false
+      );
+    }
+
     // Cancelar request anterior si existe
     this.abort();
     this.abortController = new AbortController();
@@ -247,8 +256,8 @@ export class ChatAPI {
    * Verificar conectividad con el servidor
    */
   async healthCheck(): Promise<boolean> {
-    // Si no hay webhook configurado, retornar false
-    if (!this.config.webhookUrl || this.config.webhookUrl.includes('white-field-e6ecai')) {
+    // Si no hay webhook configurado o está vacío, retornar false
+    if (!this.config.webhookUrl || this.config.webhookUrl.trim() === '' || this.config.webhookUrl.includes('white-field-e6ecai')) {
       return false;
     }
 

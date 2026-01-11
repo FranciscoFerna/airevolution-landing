@@ -91,16 +91,40 @@ function saveConsent(consent: CookieConsent): void {
 function applyConsent(consent: CookieConsent): void {
   if (typeof window === "undefined") return;
 
-  // Google Analytics
-  if (consent.analytics) {
-    // Habilitar GA4
-    window.gtag?.("consent", "update", {
-      analytics_storage: "granted",
-    });
-  } else {
-    window.gtag?.("consent", "update", {
-      analytics_storage: "denied",
-    });
+  // Función helper para actualizar GA4 con retry
+  const updateGA4Consent = () => {
+    if (typeof window.gtag === "function") {
+      if (consent.analytics) {
+        // Habilitar GA4
+        window.gtag("consent", "update", {
+          analytics_storage: "granted",
+        });
+        // Enviar pageview si está disponible
+        if (typeof window.__sendGA4PageView === "function") {
+          setTimeout(() => {
+            window.__sendGA4PageView();
+          }, 300);
+        }
+      } else {
+        window.gtag("consent", "update", {
+          analytics_storage: "denied",
+        });
+      }
+      return true;
+    }
+    return false;
+  };
+
+  // Intentar actualizar GA4 (con retry si no está listo)
+  if (!updateGA4Consent()) {
+    let attempts = 0;
+    const maxAttempts = 10;
+    const interval = setInterval(() => {
+      attempts++;
+      if (updateGA4Consent() || attempts >= maxAttempts) {
+        clearInterval(interval);
+      }
+    }, 100);
   }
 
   // Marketing (Google Ads, Meta Pixel)

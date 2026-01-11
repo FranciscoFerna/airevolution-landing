@@ -135,8 +135,8 @@ const ChatWindow: React.FC<ExtendedChatWindowProps> = ({
           behavior={behavior}
         />
 
-        {/* Error banner */}
-        {error && error.retryable && (
+        {/* Error banner - mostrar todos los errores */}
+        {error && (
           <div
             style={{
               position: 'absolute',
@@ -186,7 +186,7 @@ const ChatWindow: React.FC<ExtendedChatWindowProps> = ({
                   {error.message}
                 </span>
               </div>
-              {onRetry && (
+              {error.retryable && onRetry && (
                 <button
                   onClick={onRetry}
                   style={{
