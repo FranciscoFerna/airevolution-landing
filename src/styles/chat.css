@@ -7,7 +7,7 @@
 
 /* -----------------------------------------------------------------------------
    Base Styles
-   ----------------------------------------------------------------------------- */
+   ---------------------------------------------------------------------------- */
 
 .air-chat-widget {
   /* CSS Reset for the widget scope */
@@ -342,7 +342,7 @@
     border-radius: 0 !important;
     animation: air-chat-fade-in 0.2s ease-out;
   }
-  
+
   .air-chat-launcher {
     width: 56px !important;
     height: 56px !important;
@@ -389,7 +389,7 @@
     --chat-color-accent: #FF00FF;
     --chat-border-color: #FFFFFF;
   }
-  
+
   .air-chat-message-bubble {
     border: 2px solid currentColor;
   }
