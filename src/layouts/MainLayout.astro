@@ -134,20 +134,25 @@ const jsonLd = {
     <!-- Google Analytics 4 con Consent Mode v2 -->
     {GA_MEASUREMENT_ID && (
       <>
+        {/* Script inline que define gtag ANTES del script externo */}
+        <script is:inline define:vars={{ GA_MEASUREMENT_ID }}>
+          window.dataLayer = window.dataLayer || [];
+          window.gtag = window.gtag || function() {
+            window.dataLayer.push(arguments);
+          };
+          window.gtag.l = +new Date();
+        </script>
         <script
           is:inline
           async
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
         ></script>
         <script is:inline define:vars={{ GA_MEASUREMENT_ID }}>
-          window.dataLayer = window.dataLayer || [];
-          function gtag() {
-            dataLayer.push(arguments);
-          }
-          gtag("js", new Date());
+          // Configurar GA4 después de que el script externo se carga
+          window.gtag("js", new Date());
 
           // Consent Mode v2 - Iniciar en modo denied
-          gtag("consent", "default", {
+          window.gtag("consent", "default", {
             ad_storage: "denied",
             ad_user_data: "denied",
             ad_personalization: "denied",
@@ -159,7 +164,7 @@ const jsonLd = {
           });
 
           // Configurar GA4
-          gtag("config", GA_MEASUREMENT_ID, {
+          window.gtag("config", GA_MEASUREMENT_ID, {
             anonymize_ip: true,
             cookie_flags: "SameSite=None;Secure",
             allow_google_signals: false,
@@ -169,14 +174,14 @@ const jsonLd = {
 
           // Función helper para enviar pageview cuando haya consentimiento
           window.__sendGA4PageView = function() {
-            if (typeof gtag === 'function') {
-              gtag('event', 'page_view', {
+            if (typeof window.gtag === 'function') {
+              window.gtag('event', 'page_view', {
                 page_path: window.location.pathname + window.location.search,
                 page_title: document.title,
                 page_location: window.location.href,
               });
               // También usar el método config con page_path
-              gtag('config', GA_MEASUREMENT_ID, {
+              window.gtag('config', GA_MEASUREMENT_ID, {
                 page_path: window.location.pathname + window.location.search,
                 page_title: document.title,
                 page_location: window.location.href,
