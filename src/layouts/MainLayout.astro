@@ -209,7 +209,7 @@ const jsonLd = {
   </body>
 
   <!-- Gestión de consentimiento de cookies -->
-  <script is:inline>
+  <script is:inline define:vars={{ isDevelopment }}>
     // Escuchar actualizaciones de consentimiento
     window.addEventListener("cookieConsentUpdate", function (e) {
       const consent = e.detail;
@@ -230,10 +230,6 @@ const jsonLd = {
           // Si se aceptan cookies de analytics, enviar pageview
           if (consent.analytics && window.__sendGA4PageView) {
             window.__sendGA4PageView();
-          }
-
-          if (import.meta.env.DEV) {
-            console.log("✅ Cookie consent updated:", consent);
           }
         } else {
           // Si gtag no está listo, esperar un poco y reintentar
@@ -284,9 +280,7 @@ const jsonLd = {
           }
         }
       } catch (e) {
-        if (import.meta.env.DEV) {
-          console.warn("Error loading saved consent:", e);
-        }
+        // Error loading consent - silently fail
       }
     })();
   </script>
