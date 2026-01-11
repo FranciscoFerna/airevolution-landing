@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useUTMParams, useAnalytics, useAnnounce } from "../hooks/useFormHelper";
+import { useUTMParams, useAnalytics, useAnnounce, useRecaptcha } from "../hooks/useFormHelper";
 import { formOptions } from "../lib/validation";
 
 interface LeadFormProps {
@@ -53,6 +53,7 @@ const initialFormData: FormData = {
 export default function LeadForm({
   onSuccess,
   variant = "default",
+  recaptchaSiteKey,
 }: LeadFormProps) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormData>(initialFormData);
@@ -67,6 +68,7 @@ export default function LeadForm({
   const utmParams = useUTMParams();
   const { trackFormStart, trackFormStep, trackFormSubmit, trackFormError } = useAnalytics();
   const announce = useAnnounce();
+  const { isLoaded: recaptchaLoaded, executeRecaptcha } = useRecaptcha(recaptchaSiteKey || null);
 
   useEffect(() => {
     if (variant !== "compact") {
@@ -174,12 +176,27 @@ export default function LeadForm({
     setErrors({});
 
     try {
+      // Generar token de reCAPTCHA si está configurado
+      let recaptchaToken: string | null = null;
+      if (recaptchaSiteKey && recaptchaLoaded && executeRecaptcha) {
+        try {
+          recaptchaToken = await executeRecaptcha("submit_lead_form");
+        } catch (recaptchaError) {
+          // Si reCAPTCHA falla, continuamos sin él (no bloqueamos el envío)
+          // En producción, podrías decidir bloquear si es crítico
+          if (import.meta.env.DEV) {
+            console.warn("reCAPTCHA execution failed, continuing without token:", recaptchaError);
+          }
+        }
+      }
+
       const submitData = {
         ...formData,
         ...utmParams,
         userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "",
         landingPage: typeof window !== "undefined" ? window.location.pathname : "",
         referrer: typeof document !== "undefined" ? document.referrer : "",
+        recaptchaToken: recaptchaToken || undefined, // Solo incluir si existe
       };
 
       const response = await fetch("/api/leads", {
@@ -206,7 +223,9 @@ export default function LeadForm({
         announce("Error al enviar el formulario. Por favor, inténtalo de nuevo.", "assertive");
       }
     } catch (error) {
-      console.error("Submit error:", error);
+      if (import.meta.env.DEV) {
+        console.error("Submit error:", error);
+      }
       setErrors({ form: "Error de conexión. Por favor, inténtalo de nuevo." });
       trackFormError("network_error");
       announce("Error de conexión. Por favor, inténtalo de nuevo.", "assertive");
@@ -220,7 +239,10 @@ export default function LeadForm({
     trackFormSubmit,
     trackFormError,
     announce,
-    onSuccess
+    onSuccess,
+    recaptchaSiteKey,
+    recaptchaLoaded,
+    executeRecaptcha,
   ]);
 
   const inputClassName = (fieldName: string) => `

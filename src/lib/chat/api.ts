@@ -247,6 +247,11 @@ export class ChatAPI {
    * Verificar conectividad con el servidor
    */
   async healthCheck(): Promise<boolean> {
+    // Si no hay webhook configurado, retornar false
+    if (!this.config.webhookUrl || this.config.webhookUrl.includes('white-field-e6ecai')) {
+      return false;
+    }
+
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -258,7 +263,11 @@ export class ChatAPI {
 
       clearTimeout(timeoutId);
       return response.ok || response.status === 405; // 405 = Method Not Allowed es OK para HEAD
-    } catch {
+    } catch (error) {
+      // En desarrollo, loguear el error
+      if (import.meta.env.DEV) {
+        console.warn('[ChatAPI] Health check failed:', error);
+      }
       return false;
     }
   }

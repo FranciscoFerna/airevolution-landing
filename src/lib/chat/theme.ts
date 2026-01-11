@@ -290,11 +290,6 @@ function getWebhookUrl(): string {
   // Este valor es temporal y SOLO se usa si no hay variables de entorno configuradas
   // En producción, esto NUNCA debería ejecutarse - se lanzará un error si falta la variable
   if (import.meta.env.DEV) {
-    console.warn(
-      '[ChatAPI] ⚠️ No se encontró PUBLIC_N8N_CHAT_WEBHOOK_URL. ' +
-      'Usando URL por defecto SOLO para desarrollo. ' +
-      'Configura PUBLIC_N8N_CHAT_WEBHOOK_URL en producción.'
-    );
     // Valor temporal solo para desarrollo - NO usar en producción
     return 'https://white-field-e6ecai-revolution-proxy.fraanfeernaandeez.workers.dev/webhook/f61e1b9f-0f81-46b8-828e-668bfeeeb3eb/chat';
   }

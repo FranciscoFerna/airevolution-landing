@@ -28,8 +28,10 @@ export async function sendToN8N(data: LeadPayload, metadata: { ip: string; leadI
       }
     };
 
-    // console.log para debug (puedes comentarlo en producción si quieres menos ruido)
-    console.log(`🚀 Enviando lead ${metadata.leadId} a N8N...`);
+    // Log solo en desarrollo
+    if (import.meta.env.DEV) {
+      console.log(`🚀 Enviando lead ${metadata.leadId} a N8N...`);
+    }
 
     const response = await fetch(webhookUrl, {
       method: 'POST',
@@ -42,7 +44,9 @@ export async function sendToN8N(data: LeadPayload, metadata: { ip: string; leadI
       throw new Error(`N8N respondió con estado: ${response.status} - ${errorText}`);
     }
 
-    console.log("✅ Lead enviado correctamente a N8N");
+    if (import.meta.env.DEV) {
+      console.log("✅ Lead enviado correctamente a N8N");
+    }
     return { success: true };
 
   } catch (error) {

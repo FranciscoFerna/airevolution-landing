@@ -76,6 +76,37 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 
     const sanitizedData = sanitizeLeadData(validationResult.data);
 
+    // Validar reCAPTCHA si está presente
+    const recaptchaToken = (body as any)?.recaptchaToken;
+    if (recaptchaToken) {
+      const recaptchaSecret = import.meta.env.RECAPTCHA_SECRET_KEY;
+      if (recaptchaSecret) {
+        try {
+          const recaptchaResponse = await fetch(
+            `https://www.google.com/recaptcha/api/siteverify`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body: new URLSearchParams({
+                secret: recaptchaSecret,
+                response: recaptchaToken,
+              }),
+            }
+          );
+
+          const recaptchaResult = await recaptchaResponse.json();
+          if (!recaptchaResult.success) {
+            console.warn(`[RECAPTCHA] Validation failed from IP: ${clientIP}`);
+            // En producción, podrías decidir bloquear aquí
+            // Por ahora, solo logueamos la advertencia
+          }
+        } catch (recaptchaError) {
+          // Si la validación de reCAPTCHA falla, continuamos (no bloqueamos)
+          console.warn("[RECAPTCHA] Validation request failed:", recaptchaError);
+        }
+      }
+    }
+
     const leadId = `LEAD-${Date.now().toString(36).toUpperCase()}-${Math.random()
       .toString(36)
       .substring(7)
@@ -129,7 +160,9 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
         );
       }
 
-      console.log(`✅ Lead ${leadId} sent to n8n successfully`);
+      if (import.meta.env.DEV) {
+        console.log(`✅ Lead ${leadId} sent to n8n successfully`);
+      }
 
       return new Response(
         JSON.stringify({

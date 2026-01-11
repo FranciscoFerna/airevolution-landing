@@ -47,6 +47,8 @@ export const leadFormSchema = z.object({
   }),
 
   marketingConsent: z.boolean().optional().default(false),
+
+  recaptchaToken: z.string().optional(),
 });
 
 export type LeadFormData = z.infer<typeof leadFormSchema>;

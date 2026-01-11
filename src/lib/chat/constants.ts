@@ -52,11 +52,6 @@ function getWebhookConfig() {
   // Estos valores son temporales y SOLO se usan si no hay variables de entorno configuradas
   // En producción, esto NUNCA debería ejecutarse - se lanzará un error si faltan las variables
   if (import.meta.env.DEV) {
-    console.warn(
-      '[Constants] ⚠️ Variables de entorno no configuradas. ' +
-      'Usando valores por defecto SOLO para desarrollo. ' +
-      'Configura PUBLIC_N8N_CHAT_WEBHOOK_URL en producción.'
-    );
     // Valores temporales solo para desarrollo - NO usar en producción
     return {
       WEBHOOK_PROXY: 'https://white-field-e6ecai-revolution-proxy.fraanfeernaandeez.workers.dev',
