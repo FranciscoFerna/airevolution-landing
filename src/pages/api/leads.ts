@@ -1,3 +1,24 @@
+/**
+ * API Route: /api/leads
+ * 
+ * Endpoint para recibir y procesar leads del formulario de contacto.
+ * 
+ * Flujo:
+ * 1. Valida rate limiting (global e IP)
+ * 2. Detecta spam (honeypot)
+ * 3. Valida datos con Zod
+ * 4. Valida reCAPTCHA (opcional)
+ * 5. Sanitiza datos
+ * 6. Envía a n8n webhook
+ * 
+ * Seguridad:
+ * - Rate limiting en memoria (20 req/min por IP, 100 global)
+ * - Honeypot field "website"
+ * - Validación Zod
+ * - Sanitización de inputs
+ * - Validación reCAPTCHA (opcional)
+ */
+
 export const prerender = false;
 
 import type { APIRoute } from "astro";
@@ -52,7 +73,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       );
     }
 
-    // HONEYPOT: silencioso
+    // Honeypot: campo oculto que los bots suelen rellenar
     if (typeof body === "object" && body !== null && "website" in body && body.website) {
       console.warn(`[HONEYPOT] Spam detected from IP: ${clientIP}`);
       return new Response(

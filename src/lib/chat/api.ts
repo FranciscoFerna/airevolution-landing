@@ -1,10 +1,18 @@
-// =============================================================================
-// AI REVOLUTION - CHAT API MODULE
-// =============================================================================
-// Comunicación robusta con el backend n8n RAG
-// Incluye manejo de errores, reintentos y timeout
-// Versión: 1.0.0
-// =============================================================================
+/**
+ * Chat API Module
+ * 
+ * Cliente para comunicación con el backend n8n RAG.
+ * 
+ * Características:
+ * - Reintentos con exponential backoff
+ * - Timeout configurable
+ * - Manejo de errores robusto
+ * - Cancelación de requests
+ * - Normalización de respuestas de n8n
+ * 
+ * Flujo:
+ * Frontend → ChatAPI → Webhook Proxy → n8n → Vector DB → LLM → Response
+ */
 
 import type {
   ChatAPIConfig,
@@ -15,10 +23,6 @@ import type {
 } from './types';
 import { defaultApiConfig } from './theme';
 
-// -----------------------------------------------------------------------------
-// API CLIENT CLASS
-// -----------------------------------------------------------------------------
-
 export class ChatAPI {
   private config: ChatAPIConfig;
   private abortController: AbortController | null = null;
@@ -28,7 +32,7 @@ export class ChatAPI {
   }
 
   /**
-   * Enviar mensaje al webhook de n8n
+   * Envía un mensaje al webhook de n8n para procesamiento RAG
    */
   async sendMessage(
     sessionId: string,

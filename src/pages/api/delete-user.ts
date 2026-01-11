@@ -1,3 +1,12 @@
+/**
+ * API Route: /api/delete-user
+ * 
+ * Endpoint GDPR para solicitudes de eliminación de datos.
+ * 
+ * NOTA: Actualmente solo registra la solicitud. Debe implementarse
+ * la lógica de borrado real conectando con n8n/base de datos.
+ */
+
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
@@ -14,10 +23,9 @@ export const POST: APIRoute = async ({ request }) => {
     console.log(`[GDPR DELETE REQUEST] Solicitud de borrado para: ${email}`);
 
     // TODO: Implementar borrado real
-    // 1. Verificar identidad
-    // 2. Borrar de base de datos
-    // 3. Borrar de SendGrid/CRM
-    // 4. Enviar email de confirmación
+    // 1. Enviar solicitud a n8n para borrar datos
+    // 2. Borrar de base de datos/crm
+    // 3. Enviar confirmación por email
 
     return new Response(JSON.stringify({
       success: true,
@@ -25,7 +33,7 @@ export const POST: APIRoute = async ({ request }) => {
     }), { status: 200 });
 
   } catch (error) {
-    console.error('Delete User Error:', error);
-    return new Response(JSON.stringify({ success: false, message: 'Error interno' }), { status: 500 });
+    console.error('[DELETE_USER] Error:', error);
+    return new Response(JSON.stringify({ success: false, message: 'Error procesando la solicitud' }), { status: 500 });
   }
 };

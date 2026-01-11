@@ -1,3 +1,16 @@
+/**
+ * Rate Limiting
+ * 
+ * Sistema de limitación de tasa en memoria para prevenir abuso.
+ * 
+ * NOTA: En producción con múltiples instancias, considerar usar Redis
+ * para compartir el estado entre servidores.
+ * 
+ * Límites:
+ * - Por IP: 20 requests por minuto (configurable)
+ * - Global: 100 requests por minuto
+ */
+
 interface RateLimitEntry {
   count: number;
   firstRequest: number;
@@ -12,6 +25,7 @@ const MAX_GLOBAL_REQUESTS = 100;
 let globalRequestCounter = 0;
 let globalWindowStart = Date.now();
 
+// Cleanup periódico de entradas expiradas
 setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of rateLimitStore.entries()) {

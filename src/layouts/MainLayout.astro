@@ -1,8 +1,16 @@
 ---
-// src/layouts/MainLayout.astro
-import "../styles/global.css";
+/**
+ * MainLayout.astro
+ * 
+ * Layout principal de la aplicación. Maneja:
+ * - SEO y meta tags (Open Graph, Twitter Cards)
+ * - Google Analytics 4 con Consent Mode v2
+ * - Widget de chat de AI Revolution
+ * - Consentimiento de cookies
+ * - Optimizaciones de rendimiento (preconnect, fonts)
+ */
 
-// Optimización de fuentes
+import "../styles/global.css";
 import "@fontsource/inter/400.css";
 import "@fontsource/inter/500.css";
 import "@fontsource/inter/600.css";
@@ -32,17 +40,16 @@ const siteUrl = Astro.site?.href || import.meta.env.PUBLIC_SITE_URL || "https://
 const GA_MEASUREMENT_ID = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || "";
 const RECAPTCHA_SITE_KEY = import.meta.env.PUBLIC_RECAPTCHA_SITE_KEY || "";
 
-// Obtener URL del webhook para preconnect (opcional, mejora rendimiento)
+// URL del webhook de chat para preconnect (optimización de rendimiento)
 const webhookUrl = import.meta.env.PUBLIC_N8N_CHAT_WEBHOOK_URL || 
                    (import.meta.env.PUBLIC_N8N_WEBHOOK_PROXY && import.meta.env.PUBLIC_N8N_WEBHOOK_ID
                      ? `${import.meta.env.PUBLIC_N8N_WEBHOOK_PROXY}/webhook/${import.meta.env.PUBLIC_N8N_WEBHOOK_ID}/chat`
                      : null);
 const webhookOrigin = webhookUrl ? new URL(webhookUrl).origin : null;
 
-// Canonical URL
 const canonicalURL = new URL(Astro.url.pathname, siteUrl);
 
-// JSON-LD para SEO
+// Structured Data (JSON-LD) para SEO
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "ProfessionalService",
