@@ -5,8 +5,7 @@ import vercel from '@astrojs/vercel';
 import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
-  // ⚠️ CAMBIA ESTO POR TU DOMINIO REAL CUANDO LO TENGAS
-  site: 'https://airevolution.es',
+  site: 'https://airevolution-landing.vercel.app/',
 
   output: 'server',
   adapter: vercel(),
@@ -14,6 +13,6 @@ export default defineConfig({
   integrations: [
     react(),
     tailwind(),
-    sitemap() 
+    sitemap()
   ],
 });
