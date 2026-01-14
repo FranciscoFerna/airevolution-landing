@@ -1,7 +1,7 @@
 ---
 /**
  * MainLayout.astro
- * 
+ *
  * Layout principal de la aplicación. Maneja:
  * - SEO y meta tags (Open Graph, Twitter Cards)
  * - Google Analytics 4 con Consent Mode v2
@@ -41,7 +41,7 @@ const GA_MEASUREMENT_ID = import.meta.env.PUBLIC_GA_MEASUREMENT_ID || "";
 const RECAPTCHA_SITE_KEY = import.meta.env.PUBLIC_RECAPTCHA_SITE_KEY || "";
 
 // URL del webhook de chat para preconnect (optimización de rendimiento)
-const webhookUrl = import.meta.env.PUBLIC_N8N_CHAT_WEBHOOK_URL || 
+const webhookUrl = import.meta.env.PUBLIC_N8N_CHAT_WEBHOOK_URL ||
                    (import.meta.env.PUBLIC_N8N_WEBHOOK_PROXY && import.meta.env.PUBLIC_N8N_WEBHOOK_ID
                      ? `${import.meta.env.PUBLIC_N8N_WEBHOOK_PROXY}/webhook/${import.meta.env.PUBLIC_N8N_WEBHOOK_ID}/chat`
                      : null);
@@ -205,6 +205,30 @@ const jsonLd = {
         RECAPTCHA_SITE_KEY: RECAPTCHA_SITE_KEY || "",
       };
     </script>
+    <!-- Meta Pixel Code -->
+<script is:inline>
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '2842352925962983');
+  fbq('track', 'PageView');
+</script>
+
+<noscript>
+  <img
+    height="1"
+    width="1"
+    style="display:none"
+    src="https://www.facebook.com/tr?id=2842352925962983&ev=PageView&noscript=1"
+  />
+</noscript>
+<!-- End Meta Pixel Code -->
+
   </head>
 
   <body
