@@ -205,7 +205,7 @@ const jsonLd = {
         RECAPTCHA_SITE_KEY: RECAPTCHA_SITE_KEY || "",
       };
     </script>
-    <!-- Meta Pixel Code con Consent Mode -->
+    <!-- Meta Pixel Code -->
 <script is:inline>
   !function(f,b,e,v,n,t,s)
   {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -216,19 +216,21 @@ const jsonLd = {
   s.parentNode.insertBefore(t,s)}(window, document,'script',
   'https://connect.facebook.net/en_US/fbevents.js');
 
-  // Inicializar con consent revocado por defecto (GDPR)
-  fbq('consent', 'revoke');
   fbq('init', '2842352925962983');
+
+  // Flag para evitar enviar PageView múltiples veces
+  window.__metaPixelPageViewSent = false;
 
   // Función helper para enviar PageView cuando haya consentimiento
   window.__sendMetaPixelPageView = function() {
+    if (window.__metaPixelPageViewSent) return;
     if (typeof window.fbq === 'function') {
-      fbq('consent', 'grant');
       fbq('track', 'PageView');
+      window.__metaPixelPageViewSent = true;
     }
   };
 
-  // Verificar si ya hay consentimiento guardado
+  // Verificar si ya hay consentimiento guardado - disparar PageView solo si hay marketing consent
   try {
     var saved = localStorage.getItem('cookie_consent');
     if (saved) {
@@ -296,15 +298,9 @@ const jsonLd = {
 
       updateGA4Consent();
 
-      // Actualizar Meta Pixel si existe
-      if (typeof window.fbq === "function") {
-        if (consent.marketing) {
-          if (window.__sendMetaPixelPageView) {
-            window.__sendMetaPixelPageView();
-          }
-        } else {
-          window.fbq("consent", "revoke");
-        }
+      // Actualizar Meta Pixel si hay consentimiento de marketing
+      if (consent.marketing && window.__sendMetaPixelPageView) {
+        window.__sendMetaPixelPageView();
       }
     });
 
