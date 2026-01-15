@@ -182,8 +182,6 @@ export default function LeadForm({
         try {
           recaptchaToken = await executeRecaptcha("submit_lead_form");
         } catch (recaptchaError) {
-          // Si reCAPTCHA falla, continuamos sin él (no bloqueamos el envío)
-          // En producción, podrías decidir bloquear si es crítico
           if (import.meta.env.DEV) {
             console.warn("reCAPTCHA execution failed, continuing without token:", recaptchaError);
           }
@@ -196,7 +194,7 @@ export default function LeadForm({
         userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "",
         landingPage: typeof window !== "undefined" ? window.location.pathname : "",
         referrer: typeof document !== "undefined" ? document.referrer : "",
-        recaptchaToken: recaptchaToken || undefined, // Solo incluir si existe
+        recaptchaToken: recaptchaToken || undefined,
       };
 
       const response = await fetch("/api/leads", {
@@ -211,6 +209,26 @@ export default function LeadForm({
 
       if (response.ok && result.success) {
         setSuccess(true);
+
+        // ✅ EVENTO GTM - CONVERSIÓN DE FORMULARIO
+        if (typeof window !== "undefined") {
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({
+            'event': 'form_submit_success',
+            'form_name': 'auditoria_gratuita',
+            'form_step': 'completed',
+            'user_email': formData.email,
+            'company_size': formData.empleados,
+            'sector': formData.sector,
+            'service': formData.servicio,
+            'urgency': formData.urgencia,
+            'lead_id': result.leadId || 'unknown',
+            'value': 1,
+            'currency': 'EUR'
+          });
+          console.log('✅ Evento GTM enviado: form_submit_success');
+        }
+
         trackFormSubmit(result.leadId || "unknown", formData.servicio);
         announce("Formulario enviado correctamente. Gracias por tu solicitud.", "assertive");
 
@@ -640,10 +658,7 @@ export default function LeadForm({
             </p>
           </div>
 
-          {/* AUDITORÍA LEGAL: GAPS CORREGIDOS */}
           <div className="space-y-4 pt-2">
-
-            {/* 1. CONSENTIMIENTO PRIVACIDAD (OBLIGATORIO) */}
             <div className="flex items-start gap-3">
               <input
                 type="checkbox"
@@ -674,7 +689,6 @@ export default function LeadForm({
               </p>
             )}
 
-            {/* 2. CONSENTIMIENTO MARKETING (OPCIONAL - SEPARADO) */}
             <div className="flex items-start gap-3 p-3 bg-[#FC31E6]/5 rounded-lg border border-[#FC31E6]/20">
               <input
                 type="checkbox"
